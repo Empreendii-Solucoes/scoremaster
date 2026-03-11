@@ -33,7 +33,7 @@ export default function ThemeSelectPage() {
           Escolha seu Tema
         </h2>
         <p style={{ color: 'var(--text-sec)', fontSize: '0.9rem', marginBottom: '40px' }}>
-          Personalize sua experiência visual no Empreendii Master Score.
+          Personalize sua experiência visual no Empreendii Soluções ScoreMaster.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

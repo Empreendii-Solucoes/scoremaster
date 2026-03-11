@@ -1,4 +1,4 @@
-// Tipos globais do ScoreMaster
+// Tipos globais do Empreendii Soluções ScoreMaster
 
 export interface Profile {
   name?: string;

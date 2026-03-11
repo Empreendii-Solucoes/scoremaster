@@ -300,7 +300,7 @@ export default function AdminPage() {
           <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--gold), var(--gold-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <TrendingUp size={16} color="#000" strokeWidth={2.5} />
           </div>
-          <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1rem' }}>Empreendii Master Score <span style={{ color: 'var(--gold)' }}>Admin</span></span>
+          <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1rem' }}>Empreendii Soluções ScoreMaster <span style={{ color: 'var(--gold)' }}>Admin</span></span>
           <span className="badge" style={{ fontSize: '0.6rem' }}>Gerencial</span>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>

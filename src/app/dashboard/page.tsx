@@ -578,7 +578,7 @@ export default function Dashboard() {
           <div className="card" style={{ marginBottom: '24px', borderColor: 'rgba(238,189,43,0.15)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
               <Award size={18} color="var(--gold)" />
-              <h3 style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '0.95rem' }}>Tarefas da Equipe Empreendii Master Score</h3>
+              <h3 style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '0.95rem' }}>Tarefas da Equipe Empreendii Soluções ScoreMaster</h3>
               <span className="badge" style={{ fontSize: '0.62rem' }}>{userTasksList.filter(t => !t.done).length} pendente(s)</span>
             </div>
             {userTasksList.map(task => {
