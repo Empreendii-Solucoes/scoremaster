@@ -110,7 +110,7 @@ export default function AdminClientView() {
             <TrendingUp size={18} color="#000" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-main)' }}>Score<span className="text-gold">Master</span></div>
+            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-main)' }}>Empreendii Soluções <span className="text-gold">ScoreMaster</span></div>
             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Visão do Cliente</div>
           </div>
         </div>

@@ -104,7 +104,7 @@ export default function LoginPage() {
             <TrendingUp size={32} color="#000" strokeWidth={2.5} />
           </div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text-main)' }}>
-            Score<span className="text-gold">Master</span>
+            Empreendii Soluções <span className="text-gold">ScoreMaster</span>
           </h1>
           <p style={{ color: 'var(--text-sec)', fontSize: '0.875rem', marginTop: '6px' }}>
             Do 0 ao Crédito
