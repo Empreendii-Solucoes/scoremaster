@@ -189,7 +189,7 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div className="alert alert-info">
                 <FileText size={15} />
-                <span>Envie seus documentos diretamente aqui. A equipe ScoreMaster terá acesso para validação.</span>
+                <span>Envie seus documentos diretamente aqui. A equipe Empreendii Master Score terá acesso para validação.</span>
               </div>
 
               {DOCS.map(doc => {

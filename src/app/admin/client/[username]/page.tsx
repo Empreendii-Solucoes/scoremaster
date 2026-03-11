@@ -406,7 +406,7 @@ export default function AdminClientView() {
               <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>Contato com {client.name}</div>
               <div style={{ color: 'var(--text-sec)', fontSize: '0.82rem' }}>{client.phone || 'Telefone não cadastrado'}</div>
             </div>
-            <a href={`https://wa.me/55${(client.phone || '').replace(/\D/g, '')}?text=Olá ${client.name}, aqui é a equipe ScoreMaster!`}
+            <a href={`https://wa.me/55${(client.phone || '').replace(/\D/g, '')}?text=Olá ${client.name}, aqui é a equipe Empreendii Master Score!`}
               target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ textDecoration: 'none', gap: '8px' }}>
               <MessageCircle size={16} /> WhatsApp
             </a>

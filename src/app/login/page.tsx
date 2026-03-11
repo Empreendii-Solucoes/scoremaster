@@ -285,7 +285,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '24px' }}>
-          © 2026 ScoreMaster — Empreendii Soluções
+          © 2026 Empreendii Master Score — Empreendii Soluções
         </p>
       </div>
     </div>

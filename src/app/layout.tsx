@@ -10,12 +10,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ScoreMaster — Do 0 ao Crédito",
-  description: "Transforme seu perfil financeiro com a metodologia ScoreMaster. Guia gamificado para recuperação e expansão de crédito.",
+  title: "Empreendii Master Score — Do 0 ao Crédito",
+  description: "Transforme seu perfil financeiro com a metodologia Empreendii Master Score. Guia gamificado para recuperação e expansão de crédito.",
   keywords: "crédito, score, recuperação financeira, renegociação de dívidas, fintech",
   openGraph: {
-    title: "ScoreMaster — Do 0 ao Crédito",
-    description: "Transforme seu perfil financeiro com a metodologia ScoreMaster.",
+    title: "Empreendii Master Score — Do 0 ao Crédito",
+    description: "Transforme seu perfil financeiro com a metodologia Empreendii Master Score.",
     type: "website",
   },
 };
