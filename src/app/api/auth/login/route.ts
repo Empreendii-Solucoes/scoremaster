@@ -11,6 +11,17 @@ export async function POST(request: NextRequest) {
     }
 
     const users = await loadUsers();
+    
+    if (users.length === 0) {
+      console.error('[AUTH] Nenhum usuário encontrado no Supabase. Verifique as credenciais no .env.local ou dashboard Vercel.');
+      // No Vercel, se o login falhar pois as env vars estão erradas, loadUsers retorna [].
+      // Vamos retornar um erro mais específico para ajudar o usuário.
+      return NextResponse.json({ 
+        error: 'Erro de conexão com o banco de dados. Configure as Variáveis de Ambiente no Vercel.',
+        debug: 'Users list is empty'
+      }, { status: 500 });
+    }
+
     const user = users.find(u => u.username === username && u.password === password);
 
     if (!user) {
@@ -20,7 +31,6 @@ export async function POST(request: NextRequest) {
     const token = signToken({ username: user.username, isAdmin: !!user.isAdmin });
 
     // Remove senha antes de enviar
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, ...safeUser } = user;
 
     const response = NextResponse.json({ user: safeUser, token });
@@ -32,7 +42,8 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch (e) {
-    return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 });
+  } catch (e: any) {
+    console.error('[AUTH] Erro interno no POST /api/auth/login:', e.message);
+    return NextResponse.json({ error: 'Erro interno do servidor.', detail: e.message }, { status: 500 });
   }
 }

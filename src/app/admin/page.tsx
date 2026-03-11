@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { User, Stage, Task, UserTask, GlobalSettings } from '@/lib/types';
 
-type AdminTab = 'users' | 'financial' | 'tasks' | 'content' | 'settings';
+type AdminTab = 'users' | 'financial' | 'tasks' | 'content' | 'settings' | 'services';
 
 interface NewTaskForm {
   title: string;
@@ -54,6 +54,12 @@ export default function AdminPage() {
   const [expandedStage, setExpandedStage] = useState<string | null>(null);
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({ whatsapp_number: '', mentoria_link: '', cartao_garantido_link: '' });
 
+  // Services State
+  const [servicesData, setServicesData] = useState<any>(null);
+  const [whatsappServiceForm, setWhatsappServiceForm] = useState({ title: '', description: '', price: 0, visibility: 'all' as 'all' | 'specific', userIds: '', link: '' });
+  const [editingWpServiceId, setEditingWpServiceId] = useState<string | null>(null);
+  const [showNewWpService, setShowNewWpService] = useState(false);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     const [usersRes, contentRes] = await Promise.all([
@@ -68,6 +74,10 @@ export default function AdminPage() {
       const content = await contentRes.json();
       setStages(content.stages || []);
       if (content.settings) setGlobalSettings(content.settings);
+    }
+    const servicesRes = await fetch('/api/services');
+    if (servicesRes.ok) {
+      setServicesData(await servicesRes.json());
     }
     setLoading(false);
   }, []);
@@ -96,6 +106,26 @@ export default function AdminPage() {
   const createUser = async () => {
     const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...newUserForm, profile_choice: 'PF' }) });
     if (res.ok) { setShowNewUser(false); setNewUserForm({ username: '', password: '', name: '', phone: '' }); fetchData(); }
+  };
+
+  const exportToCSV = () => {
+    const headers = ['Nome', 'Usuario', 'Telefone', 'Perfil', 'CPF', 'CNPJ', 'Score Serasa', 'Score Saude', 'Tarefas Concluidas', 'Receita Pagamento (R$)'];
+    const rows = users.map(u => {
+      const pf = u.profiles?.PF;
+      const pj = u.profiles?.PJ;
+      const doneTasks = Object.values(u.progress || {}).filter(p => p.done).length;
+      const revenue = (u.financial_items || []).filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
+      return [
+        u.name, u.username, u.phone || '', u.profile_choice || '', pf?.cpf || '', pj?.cnpj || '',
+        pf?.score || pj?.score || '', u.credit_health?.score || '', doneTasks, revenue
+      ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+    });
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `clientes_empreendii_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
   };
 
   const deleteUserTask = async (targetUsername: string, taskId: string) => {
@@ -280,6 +310,34 @@ export default function AdminPage() {
     await fetch('/api/content', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stages, settings: updated }) });
   };
 
+  const saveServices = async (updated: any) => {
+    setServicesData(updated);
+    await fetch('/api/services', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+  };
+
+  const addWhatsappService = async () => {
+    if (!whatsappServiceForm.title) return;
+    const newService = {
+      id: `wp_${Date.now()}`,
+      title: whatsappServiceForm.title,
+      description: whatsappServiceForm.description,
+      price: whatsappServiceForm.price,
+      visibility: whatsappServiceForm.visibility,
+      userIds: whatsappServiceForm.userIds.split(',').map(s => s.trim()).filter(Boolean),
+      link: whatsappServiceForm.link,
+    };
+    const updated = { ...servicesData, whatsapp_services: [...(servicesData.whatsapp_services || []), newService] };
+    await saveServices(updated);
+    setWhatsappServiceForm({ title: '', description: '', price: 0, visibility: 'all', userIds: '', link: '' });
+    setShowNewWpService(false);
+  };
+
+  const deleteWhatsappService = async (id: string) => {
+    if (!confirm('Excluir este serviço?')) return;
+    const updated = { ...servicesData, whatsapp_services: servicesData.whatsapp_services.filter((s: any) => s.id !== id) };
+    await saveServices(updated);
+  };
+
   const totalTasksDone = users.reduce((s, u) => s + Object.values(u.progress || {}).filter(p => p.done).length, 0);
   const totalTasksAll = users.length * stages.flatMap(s => s.tasks).length;
   const avgProgress = users.length ? Math.round(users.reduce((s, u) => { const m = stages.flatMap(st => st.tasks).filter(t => t.mandatory); const d = m.filter(t => u.progress?.[t.id]?.done).length; return s + (m.length ? (d / m.length) * 100 : 0); }, 0) / users.length) : 0;
@@ -288,6 +346,7 @@ export default function AdminPage() {
     { id: 'users' as AdminTab, label: 'Clientes', icon: Users },
     { id: 'tasks' as AdminTab, label: 'Tarefas', icon: ListChecks },
     { id: 'financial' as AdminTab, label: 'Financeiro', icon: DollarSign },
+    { id: 'services' as AdminTab, label: 'Serviços', icon: MessageSquare },
     { id: 'content' as AdminTab, label: 'Fases', icon: Layers },
     { id: 'settings' as AdminTab, label: 'Configurações', icon: Settings },
   ];
@@ -381,11 +440,16 @@ export default function AdminPage() {
                 )}
 
                 {/* Header + add */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                   <h3 style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '0.95rem' }}>Todos os Clientes ({users.length})</h3>
-                  <button className="btn btn-primary btn-sm" onClick={() => setShowNewUser(!showNewUser)} style={{ gap: '6px' }}>
-                    <Plus size={13} /> Novo Cliente
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="btn btn-sm" onClick={exportToCSV} style={{ gap: '6px', color: 'var(--text-main)', borderColor: 'var(--border)', background: 'var(--bg-input)' }}>
+                      <Download size={13} /> Exportar Base (CSV)
+                    </button>
+                    <button className="btn btn-primary btn-sm" onClick={() => setShowNewUser(!showNewUser)} style={{ gap: '6px' }}>
+                      <Plus size={13} /> Novo Cliente
+                    </button>
+                  </div>
                 </div>
 
                 {showNewUser && (
@@ -969,6 +1033,107 @@ export default function AdminPage() {
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            )}
+
+            {/* === SERVIÇOS TAB === */}
+            {tab === 'services' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="card" style={{ padding: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <MessageSquare size={18} color="var(--gold)" />
+                      <h3 style={{ color: 'var(--text-main)', fontWeight: 700 }}>Comunidade WhatsApp: Serviços Exclusive</h3>
+                    </div>
+                    <button className="btn btn-primary btn-sm" onClick={() => setShowNewWpService(!showNewWpService)} style={{ gap: '6px' }}>
+                      <Plus size={13} /> Novo Serviço
+                    </button>
+                  </div>
+
+                  {showNewWpService && (
+                    <div style={{ padding: '20px', background: 'var(--bg-input)', borderRadius: '15px', border: '1px solid var(--gold)', marginBottom: '20px' }}>
+                      <h4 style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '16px' }}>Cadastrar Novo Serviço WhatsApp</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                        <div className="input-group">
+                          <label className="input-label">Título do Serviço</label>
+                          <input className="input" placeholder="Ex: Recuperação de Crédito" value={whatsappServiceForm.title} onChange={e => setWhatsappServiceForm(p => ({ ...p, title: e.target.value }))} />
+                        </div>
+                        <div className="input-group">
+                          <label className="input-label">Preço (R$)</label>
+                          <input className="input" type="number" value={whatsappServiceForm.price} onChange={e => setWhatsappServiceForm(p => ({ ...p, price: Number(e.target.value) }))} />
+                        </div>
+                      </div>
+                      <div className="input-group" style={{ marginBottom: '12px' }}>
+                        <label className="input-label">Descrição Curta</label>
+                        <textarea className="input" rows={2} placeholder="O que está incluso neste serviço?" value={whatsappServiceForm.description} onChange={e => setWhatsappServiceForm(p => ({ ...p, description: e.target.value }))} />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                        <div className="input-group">
+                          <label className="input-label">Visibilidade</label>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {(['all', 'specific'] as const).map(v => (
+                              <button key={v} type="button" onClick={() => setWhatsappServiceForm(p => ({ ...p, visibility: v }))}
+                                className="btn btn-sm" style={{ flex: 1, background: whatsappServiceForm.visibility === v ? 'var(--gold)' : 'transparent', color: whatsappServiceForm.visibility === v ? '#000' : 'var(--text-sec)', borderColor: whatsappServiceForm.visibility === v ? 'var(--gold)' : 'var(--border)' }}>
+                                {v === 'all' ? 'Todos' : 'Específicos'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="input-group">
+                          <label className="input-label">Link de Pagamento / Contato</label>
+                          <input className="input" placeholder="https://..." value={whatsappServiceForm.link} onChange={e => setWhatsappServiceForm(p => ({ ...p, link: e.target.value }))} />
+                        </div>
+                      </div>
+                      {whatsappServiceForm.visibility === 'specific' && (
+                        <div className="input-group" style={{ marginBottom: '12px' }}>
+                          <label className="input-label">Usernames (separados por vírgula)</label>
+                          <input className="input" placeholder="usuario1, usuario2" value={whatsappServiceForm.userIds} onChange={e => setWhatsappServiceForm(p => ({ ...p, userIds: e.target.value }))} />
+                          <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px' }}>Apenas estes usuários verão este serviço no painel deles.</p>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button className="btn btn-primary btn-sm" onClick={addWhatsappService} style={{ gap: '6px' }}><Plus size={13} /> Criar Serviço</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setShowNewWpService(false)}>Cancelar</button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                          {['Título', 'Preço', 'Visibilidade', 'Destinatários', 'Ações'].map(h => (
+                            <th key={h} style={{ padding: '12px', textAlign: 'left', color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.7rem', textTransform: 'uppercase' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(servicesData?.whatsapp_services || []).map((s: any) => (
+                          <tr key={s.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                            <td style={{ padding: '12px' }}>
+                              <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{s.title}</div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.description}</div>
+                            </td>
+                            <td style={{ padding: '12px', color: 'var(--gold)', fontWeight: 700 }}>R$ {s.price.toFixed(2)}</td>
+                            <td style={{ padding: '12px' }}>
+                              <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '0.65rem', background: s.visibility === 'all' ? 'rgba(34,197,94,0.1)' : 'rgba(99,102,241,0.1)', color: s.visibility === 'all' ? '#22c55e' : '#6366f1' }}>
+                                {s.visibility === 'all' ? 'Público' : 'Exclusivo'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px', fontSize: '0.7rem', color: 'var(--text-sec)' }}>
+                              {s.visibility === 'all' ? 'Todos os clientes' : s.userIds?.join(', ') || 'Nenhum'}
+                            </td>
+                            <td style={{ padding: '12px' }}>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button onClick={() => deleteWhatsappService(s.id)} className="btn btn-sm" style={{ padding: '4px', borderColor: 'var(--danger)', color: 'var(--danger)' }}><Trash2 size={13} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}

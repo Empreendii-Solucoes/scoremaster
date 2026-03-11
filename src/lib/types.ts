@@ -196,9 +196,20 @@ export interface CreditCard {
   };
 }
 
+export interface WhatsAppService {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  visibility: 'all' | 'specific';
+  userIds: string[];
+  link: string;
+}
+
 export interface ServicesData {
   raio_x: { price: number; payment_link: string };
   credit_cards: CreditCard[];
+  whatsapp_services?: WhatsAppService[];
 }
 
 export type ProfileType = 'PF' | 'PJ';
