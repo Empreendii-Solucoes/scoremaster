@@ -1,0 +1,391 @@
+[
+  {
+    "username": "admin",
+    "password": "admin123",
+    "name": "Administrador",
+    "email": "admin@scoremaster.com.br",
+    "phone": "",
+    "isAdmin": true,
+    "onboarding_completed": true,
+    "credit_health_completed": true,
+    "raio_x_status": "approved",
+    "pending_xray_purchase": false,
+    "profiles": {
+      "PF": {
+        "name": "Admin User",
+        "identifier": "000.000.000-00",
+        "cpf": "000.000.000-00",
+        "score": 999,
+        "scoreTrend": "stable",
+        "debts": []
+      }
+    },
+    "financial_items": [],
+    "badges": [],
+    "progress": {},
+    "credit_health": {
+      "score": 999,
+      "level": "Mestre",
+      "level_color": "#D4AF37",
+      "percentage": 100,
+      "last_calculated": null,
+      "initial_data": {}
+    },
+    "total_points": 0,
+    "streak_days": 0,
+    "last_activity": null
+  },
+  {
+    "username": "tamara",
+    "password": "tamara123",
+    "name": "Tamara B",
+    "email": "tamara5170@gmail.com",
+    "phone": "11992795498",
+    "onboarding_completed": true,
+    "credit_health_completed": true,
+    "raio_x_status": "pending",
+    "pending_xray_purchase": false,
+    "profiles": {
+      "PF": {
+        "name": "Tamara B",
+        "identifier": "",
+        "cpf": "",
+        "score": 0,
+        "scoreTrend": "stable",
+        "debts": []
+      }
+    },
+    "financial_items": [],
+    "badges": [],
+    "progress": {
+      "task_update_profile": {
+        "done": true,
+        "timestamp": 1773190884944
+      },
+      "task_raio_x_upload": {
+        "done": true,
+        "timestamp": 1773190911336
+      },
+      "task_health_questionnaire": {
+        "done": true,
+        "timestamp": 1773190913822
+      },
+      "task_exclusao_contas": {
+        "done": true,
+        "timestamp": 1773190923896
+      },
+      "task_bacen": {
+        "done": true,
+        "timestamp": 1773190926827
+      },
+      "task_negativacao": {
+        "done": true,
+        "timestamp": 1773190942900
+      },
+      "task_cadastro_positivo": {
+        "done": true,
+        "timestamp": 1773190949517
+      },
+      "task_blindagem_instrucoes": {
+        "done": true,
+        "timestamp": 1773199051998
+      },
+      "task_relacionamento_dados": {
+        "done": true,
+        "timestamp": 1773199072044,
+        "checklist_items": {
+          "Dados Pessoais atualizados": true,
+          "Profissão atualizada": true,
+          "Renda declarada (IRPF se houver)": true
+        }
+      },
+      "task_portabilidade": {
+        "done": true,
+        "timestamp": 1773199090445,
+        "checklist_items": {
+          "Chaves PIX cadastradas": true,
+          "Portabilidade de salário realizada": true
+        }
+      },
+      "task_debito_automatico": {
+        "done": true,
+        "timestamp": 1773199095620,
+        "checklist_items": {
+          "Conta de Luz": true,
+          "Conta de Água": true,
+          "Internet": true
+        }
+      },
+      "task_investimento": {
+        "done": true,
+        "timestamp": 1773199104695,
+        "checklist_items": {
+          "Investimento Realizado": true
+        }
+      },
+      "task_seguro": {
+        "done": true,
+        "timestamp": 1773199110779,
+        "checklist_items": {
+          "Simulação Realizada": true
+        }
+      }
+    },
+    "credit_health": {
+      "score": 200,
+      "level": "Aprendiz",
+      "level_color": "#FF9800",
+      "percentage": 20,
+      "breakdown": {
+        "score_positivo": 200,
+        "contas_bancarias": 0,
+        "debitos_automaticos": 0,
+        "investimentos": 0,
+        "seguros": 0
+      },
+      "last_calculated": "2026-03-11T00:59:13.714Z",
+      "initial_data": {
+        "has_positive_score": true,
+        "bank_accounts_range": "",
+        "has_auto_debit": null,
+        "has_investments": false,
+        "has_insurance": false
+      }
+    },
+    "total_points": 0,
+    "streak_days": 0,
+    "last_activity": null,
+    "occupation": "Cabeleleira",
+    "mother_name": "Maria Aparecida da Silva",
+    "address_cep": "07903050",
+    "address_street": "Rua Lindóia",
+    "address_number": "220",
+    "address_complement": "casa",
+    "address_neighborhood": "Vila Suiça",
+    "address_city": "Francisco Morato",
+    "address_state": "SP",
+    "uploads": {
+      "doc_cnh": {
+        "filename": "tamara_doc_cnh_1773199177286.jpg",
+        "originalName": "CNH Tamara.jpg",
+        "path": "uploads/tamara/tamara_doc_cnh_1773199177286.jpg",
+        "uploadedAt": "2026-03-11T03:19:37.297Z",
+        "size": 208321
+      },
+      "doc_comprovante": {
+        "filename": "tamara_doc_comprovante_1773199189723.pdf",
+        "originalName": "Consulta_Completa.pdf",
+        "path": "uploads/tamara/tamara_doc_comprovante_1773199189723.pdf",
+        "uploadedAt": "2026-03-11T03:19:49.801Z",
+        "size": 3141228
+      },
+      "doc_extrato": {
+        "filename": "tamara_doc_extrato_1773199200265.pdf",
+        "originalName": "Consulta_Completa.pdf",
+        "path": "uploads/tamara/tamara_doc_extrato_1773199200265.pdf",
+        "uploadedAt": "2026-03-11T03:20:00.422Z",
+        "size": 3141228
+      },
+      "doc_selfie": {
+        "filename": "tamara_doc_selfie_1773199212918.PNG",
+        "originalName": "Tamara.PNG",
+        "path": "uploads/tamara/tamara_doc_selfie_1773199212918.PNG",
+        "uploadedAt": "2026-03-11T03:20:12.922Z",
+        "size": 316083
+      }
+    }
+  },
+  {
+    "username": "dimithryrs",
+    "password": "dimithry123",
+    "name": "Dimithry R",
+    "email": "dimithryrs@otmail.com",
+    "phone": "11960174122",
+    "onboarding_completed": true,
+    "credit_health_completed": true,
+    "raio_x_status": "approved",
+    "pending_xray_purchase": false,
+    "profiles": {
+      "PF": {
+        "name": "Dimithry R",
+        "identifier": "",
+        "cpf": "",
+        "score": 0,
+        "scoreTrend": "stable",
+        "debts": []
+      }
+    },
+    "financial_items": [
+      {
+        "id": "fin_1773203748575",
+        "name": "Melhoria de Score",
+        "description": "teste 1",
+        "amount": 1500,
+        "status": "paid",
+        "payment_link": "https://wa.me/5516992795498",
+        "created_at": "2026-03-11T04:35:48.575Z",
+        "paid_at": "2026-03-11T04:44:17.070Z"
+      }
+    ],
+    "badges": [],
+    "progress": {
+      "task_update_profile": {
+        "done": true,
+        "timestamp": 1773202378846
+      },
+      "task_raio_x_upload": {
+        "done": true,
+        "timestamp": 1773202435151
+      },
+      "task_health_questionnaire": {
+        "done": true,
+        "timestamp": 1773202468372
+      },
+      "task_blindagem_instrucoes": {
+        "done": true,
+        "timestamp": 1773235688697
+      },
+      "task_exclusao_contas": {
+        "done": true,
+        "timestamp": 1773235636635
+      },
+      "task_bacen": {
+        "done": true,
+        "timestamp": 1773235641442
+      },
+      "task_negativacao": {
+        "done": true,
+        "timestamp": 1773235677023,
+        "checklist_items": {
+          "Dívidas identificadas": true,
+          "Prioridade definida pela IA": true,
+          "Negociação iniciada": true
+        }
+      },
+      "task_cadastro_positivo": {
+        "done": true,
+        "timestamp": 1773235682919,
+        "checklist_items": {
+          "Cadastro Positivo ativado": true
+        }
+      },
+      "task_relacionamento_dados": {
+        "done": true,
+        "timestamp": 1773235705780,
+        "checklist_items": {
+          "Dados Pessoais atualizados": true,
+          "Profissão atualizada": true,
+          "Renda declarada (IRPF se houver)": true
+        }
+      },
+      "task_portabilidade": {
+        "done": true,
+        "timestamp": 1773235715083,
+        "checklist_items": {
+          "Chaves PIX cadastradas": true,
+          "Portabilidade de salário realizada": true
+        }
+      },
+      "task_debito_automatico": {
+        "done": true,
+        "timestamp": 1773235721451,
+        "checklist_items": {
+          "Conta de Luz": true,
+          "Conta de Água": true,
+          "Internet": true
+        }
+      },
+      "task_investimento": {
+        "done": true,
+        "timestamp": 1773235727700,
+        "checklist_items": {
+          "Investimento Realizado": true
+        }
+      },
+      "task_seguro": {
+        "done": true,
+        "timestamp": 1773235732852,
+        "checklist_items": {
+          "Simulação Realizada": true
+        }
+      }
+    },
+    "credit_health": {
+      "score": 0,
+      "level": "Iniciante",
+      "level_color": "#FF5252",
+      "percentage": 0,
+      "breakdown": {
+        "score_positivo": 0,
+        "contas_bancarias": 0,
+        "debitos_automaticos": 0,
+        "investimentos": 0,
+        "seguros": 0
+      },
+      "last_calculated": "2026-03-11T04:14:28.363Z",
+      "initial_data": {
+        "has_positive_score": false,
+        "bank_accounts_range": "4+",
+        "has_auto_debit": false,
+        "has_investments": false,
+        "has_insurance": false
+      }
+    },
+    "total_points": 0,
+    "streak_days": 0,
+    "last_activity": null,
+    "occupation": "empresario",
+    "mother_name": "zaide laurindo ribeiro",
+    "address_cep": "07903050",
+    "address_street": "Rua Lindóia",
+    "address_number": "220",
+    "address_complement": "casa 2",
+    "address_neighborhood": "Vila Suiça",
+    "address_city": "Francisco Morato",
+    "address_state": "SP",
+    "uploads": {
+      "doc_cnh": {
+        "filename": "dimithryrs_doc_cnh_1773202391456.PNG",
+        "originalName": "CNHe.PNG",
+        "path": "uploads/dimithryrs/dimithryrs_doc_cnh_1773202391456.PNG",
+        "uploadedAt": "2026-03-11T04:13:11.464Z",
+        "size": 246101
+      },
+      "doc_comprovante": {
+        "filename": "dimithryrs_doc_comprovante_1773202397535.png",
+        "originalName": "CCMEI.png",
+        "path": "uploads/dimithryrs/dimithryrs_doc_comprovante_1773202397535.png",
+        "uploadedAt": "2026-03-11T04:13:17.594Z",
+        "size": 45018
+      },
+      "doc_extrato": {
+        "filename": "dimithryrs_doc_extrato_1773202402609.png",
+        "originalName": "CCMEI.png",
+        "path": "uploads/dimithryrs/dimithryrs_doc_extrato_1773202402609.png",
+        "uploadedAt": "2026-03-11T04:13:22.613Z",
+        "size": 45018
+      },
+      "doc_irpf": {
+        "filename": "dimithryrs_doc_irpf_1773202407405.png",
+        "originalName": "CCMEI.png",
+        "path": "uploads/dimithryrs/dimithryrs_doc_irpf_1773202407405.png",
+        "uploadedAt": "2026-03-11T04:13:27.410Z",
+        "size": 45018
+      },
+      "doc_selfie": {
+        "filename": "dimithryrs_doc_selfie_1773202414067.jpeg",
+        "originalName": "WhatsApp Image 2026-01-20 at 20.20.18.jpeg",
+        "path": "uploads/dimithryrs/dimithryrs_doc_selfie_1773202414067.jpeg",
+        "uploadedAt": "2026-03-11T04:13:34.074Z",
+        "size": 106483
+      },
+      "serasa": {
+        "filename": "dimithryrs_serasa_1773202434158.jpg",
+        "originalName": "histórico escolar Dimithry.jpg",
+        "path": "uploads/dimithryrs/dimithryrs_serasa_1773202434158.jpg",
+        "uploadedAt": "2026-03-11T04:13:54.164Z",
+        "size": 287433
+      }
+    }
+  }
+]

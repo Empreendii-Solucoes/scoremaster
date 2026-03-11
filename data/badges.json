@@ -1,0 +1,89 @@
+{
+  "badges": [
+    {
+      "id": "badge_first_access",
+      "name": "Primeiro Acesso",
+      "description": "Bem-vindo ao ScoreMaster!",
+      "icon": "🎯",
+      "color": "#FF9800",
+      "points": 50
+    },
+    {
+      "id": "badge_profile_updated",
+      "name": "Perfil Completo",
+      "description": "Completou a atualização cadastral",
+      "icon": "✅",
+      "color": "#00C853",
+      "stage_required": "stage_1",
+      "points": 100
+    },
+    {
+      "id": "badge_nome_limpo",
+      "name": "Nome Limpo",
+      "description": "Renegociação de dívidas concluída",
+      "icon": "🏆",
+      "color": "#D4AF37",
+      "stage_required": "stage_2",
+      "points": 200
+    },
+    {
+      "id": "badge_profile_protected",
+      "name": "Perfil Protegido",
+      "description": "Blindagem de perfil concluída",
+      "icon": "🛡️",
+      "color": "#5C6BC0",
+      "stage_required": "stage_2",
+      "points": 200
+    },
+    {
+      "id": "badge_cadastro_positivo",
+      "name": "Mestre do Cadastro Positivo",
+      "description": "Cadastro Positivo ativado com sucesso",
+      "icon": "⭐",
+      "color": "#00B4D8",
+      "points": 150
+    },
+    {
+      "id": "badge_relationship_started",
+      "name": "Relacionamento Iniciado",
+      "description": "Começou a construir relacionamento bancário",
+      "icon": "📈",
+      "color": "#26C6DA",
+      "stage_required": "stage_3",
+      "points": 300
+    },
+    {
+      "id": "badge_investor",
+      "name": "Investidor Iniciante",
+      "description": "Realizou seu primeiro investimento",
+      "icon": "💰",
+      "color": "#66BB6A",
+      "points": 200
+    },
+    {
+      "id": "badge_financial_master",
+      "name": "Mestre Financeiro",
+      "description": "Completou todas as fases do programa",
+      "icon": "👑",
+      "color": "#9C27B0",
+      "stage_required": "stage_4",
+      "points": 500
+    },
+    {
+      "id": "badge_streak_7",
+      "name": "Dedicado",
+      "description": "7 dias consecutivos de atividade",
+      "icon": "🔥",
+      "color": "#FF5722",
+      "streak_days": 7,
+      "points": 150
+    }
+  ],
+  "progress_messages": {
+    "0-25": "Você está começando sua jornada! Continue assim!",
+    "26-50": "Ótimo progresso! Você está no caminho certo.",
+    "51-75": "Excelente! Você está quase lá!",
+    "76-99": "Incrível! Falta muito pouco para completar!",
+    "100": "Parabéns! Você completou sua jornada financeira! 🎉"
+  }
+}

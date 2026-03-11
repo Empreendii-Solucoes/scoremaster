@@ -1,0 +1,36 @@
+{
+  "raio_x": {
+    "price": 67.0,
+    "payment_link": "https://empreendii-solucoes.pay.yampi.com.br/r/6DX8FAB8A2"
+  },
+  "credit_cards": [
+    {
+      "id": "card_guaranteed_1",
+      "title": "Cartão de Crédito Garantido",
+      "category": "guaranteed",
+      "description": "Acesso imediato ao crédito com 100% de garantia de aprovação.",
+      "client_description": "100% de garantia! Se o cartão não for aprovado você recebe integralmente o valor de volta, exceto 1% de taxa sobre os honorários dos serviços prestados.\n90% dos casos o cartão que não é aprovado com o limite escolhido, é aprovado com limite de menor valor. 0,1% de chances de não ser aprovado o cartão em si.",
+      "type": "standard",
+      "allowed_users": [],
+      "allowed_values": [20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000],
+      "payment_rule": {
+        "type": "percent",
+        "value": 0.3
+      }
+    },
+    {
+      "id": "card_mentoria_1",
+      "title": "Mentoria Financeira Individual",
+      "category": "education",
+      "description": "Sessão 1:1 com especialista em crédito e recuperação financeira.",
+      "client_description": "Sessão individual de 60 minutos com consultor especializado em Rating Bancário. Elaboramos juntos seu plano personalizado de recuperação e expansão de crédito.",
+      "type": "standard",
+      "allowed_users": [],
+      "price": 297.00,
+      "payment_rule": {
+        "type": "fixed",
+        "installments": [1, 2, 3]
+      }
+    }
+  ]
+}

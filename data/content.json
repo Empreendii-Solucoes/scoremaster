@@ -1,0 +1,193 @@
+{
+  "stages": [
+    {
+      "id": "stage_1",
+      "title": "Diagnóstico — O Raio-X",
+      "description": "Análise completa da sua situação de crédito atual.",
+      "icon": "🔍",
+      "order": 1,
+      "locked": false,
+      "tasks": [
+        {
+          "id": "task_update_profile",
+          "title": "Dados Cadastrais",
+          "description": "Preencha todos os campos obrigatórios e envie os documentos para validação.",
+          "type": "form",
+          "mandatory": true
+        },
+        {
+          "id": "task_raio_x_upload",
+          "title": "Envie aqui a Consulta que você possui",
+          "description": "Envie sua consulta do CPF/CNPJ (PDF, JPG ou PNG) para análise detalhada pelo nosso sistema. Só são aceitas consultas com até 60 dias.",
+          "type": "upload",
+          "mandatory": true
+        },
+        {
+          "id": "task_health_questionnaire",
+          "title": "Queremos te orientar melhor",
+          "description": "Responda ao questionário de 5 perguntas sobre seus hábitos financeiros para calcular seu Score de Saúde e definir seu nível inicial.",
+          "type": "health_quiz",
+          "mandatory": true
+        }
+      ]
+    },
+    {
+      "id": "stage_2",
+      "title": "Alinhamento de Perfil com o Mercado de Crédito",
+      "description": "Renegociação de dívidas e blindagem do seu perfil financeiro.",
+      "icon": "🛡️",
+      "order": 2,
+      "locked": true,
+      "tasks": [
+        {
+          "id": "task_blindagem_instrucoes",
+          "title": "Instruções Iniciais",
+          "description": "Assista ao vídeo para liberar as próximas etapas.",
+          "type": "video",
+          "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "mandatory": true
+        },
+        {
+          "id": "task_exclusao_contas",
+          "title": "Exclusão de Contas Inutilizadas",
+          "description": "Siga o passo a passo para encerrar contas antigas e reduzir exposição de risco.",
+          "type": "action",
+          "mandatory": true
+        },
+        {
+          "id": "task_bacen",
+          "title": "Bacen — Registrato",
+          "description": "Verifique seus apontamentos no SCR (Sistema de Informações de Crédito).",
+          "type": "video_action",
+          "video_url": "",
+          "actions": [
+            "Bacen OK",
+            "Preciso de Ajuda com o Bacen"
+          ],
+          "mandatory": true
+        },
+        {
+          "id": "task_negativacao",
+          "title": "Negociação de Dívidas Ativas",
+          "description": "Fazemos uma análise exclusiva para lhe ajudar com renegociações. O que foi feito até aqui?",
+          "type": "checklist",
+          "items": [
+            "Dívidas identificadas",
+            "Prioridade definida pela IA",
+            "Negociação iniciada"
+          ],
+          "mandatory": true
+        },
+        {
+          "id": "task_cadastro_positivo",
+          "title": "Ativação do Cadastro Positivo",
+          "description": "Ative o Cadastro Positivo no Banco Central para melhorar seu score.",
+          "type": "checklist",
+          "items": [
+            "Cadastro Positivo ativado"
+          ],
+          "mandatory": true
+        }
+      ],
+      "is_paid": false
+    },
+    {
+      "id": "stage_3",
+      "title": "Construção de Histórico — Relacionamento",
+      "description": "Construa relacionamento bancário sólido e aumente seu score interno.",
+      "icon": "📈",
+      "order": 3,
+      "locked": true,
+      "tasks": [
+        {
+          "id": "task_relacionamento_dados",
+          "title": "Atualizar Dados nas Contas Bancárias",
+          "description": "Vá ao app do seu banco e atualize renda, profissão e dados cadastrais.",
+          "type": "checklist",
+          "items": [
+            "Dados Pessoais atualizados",
+            "Profissão atualizada",
+            "Renda declarada (IRPF se houver)"
+          ],
+          "mandatory": true
+        },
+        {
+          "id": "task_portabilidade",
+          "title": "Portabilidade de Salário / PIX",
+          "description": "Cadastre chaves PIX e faça portabilidade de salário para banco digital estratégico.",
+          "type": "checklist",
+          "items": [
+            "Chaves PIX cadastradas",
+            "Portabilidade de salário realizada"
+          ],
+          "mandatory": true
+        },
+        {
+          "id": "task_debito_automatico",
+          "title": "Débito Automático",
+          "description": "Cadastre pelo menos 3 contas em débito automático para demonstrar regularidade.",
+          "type": "checklist",
+          "items": [
+            "Conta de Luz",
+            "Conta de Água",
+            "Internet",
+            "Celular"
+          ],
+          "mandatory": false
+        },
+        {
+          "id": "task_investimento",
+          "title": "Primeiro Investimento",
+          "description": "Faça um investimento de risco baixo/médio (mín. R$ 50,00) para demonstrar capacidade financeira.",
+          "type": "checklist",
+          "items": [
+            "Investimento Realizado"
+          ],
+          "mandatory": true
+        },
+        {
+          "id": "task_seguro",
+          "title": "Simulação de Seguro",
+          "description": "Simule seguro de auto/vida para demonstrar perfil de cliente valorizado pelas instituições.",
+          "type": "checklist",
+          "items": [
+            "Simulação Realizada"
+          ],
+          "mandatory": true
+        }
+      ]
+    },
+    {
+      "id": "stage_4",
+      "title": "Expansão — Novas Chances",
+      "description": "Acesse crédito com taxas reduzidas e produtos financeiros premium.",
+      "icon": "👑",
+      "order": 4,
+      "locked": true,
+      "is_paid": true,
+      "price": 97,
+      "payment_link": "https://pay.kiwify.com.br/",
+      "tasks": [
+        {
+          "id": "task_cartao_secured",
+          "title": "Cartão Garantido (Secured)",
+          "description": "Acesse nosso catálogo de cartões com limite garantido para construir histórico positivo.",
+          "type": "action",
+          "mandatory": true
+        },
+        {
+          "id": "task_mentoria",
+          "title": "Mentoria Financeira",
+          "description": "Sessão individual com especialista para elaborar seu plano de crédito personalizado.",
+          "type": "action",
+          "mandatory": false
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "whatsapp_number": "5516992795498",
+    "mentoria_link": "",
+    "cartao_garantido_link": ""
+  }
+}
