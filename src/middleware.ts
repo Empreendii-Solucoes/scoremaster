@@ -1,3 +1,6 @@
+// NOTA: Next.js 16 avisa que "middleware" será substituído por "proxy".
+// A API de proxy ainda é experimental/instável, então mantemos middleware
+// que funciona perfeitamente. Migrar quando a API proxy estabilizar.
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 

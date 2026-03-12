@@ -250,7 +250,7 @@ export default function Dashboard() {
   const [checkItems, setCheckItems] = useState<Record<string, Record<string, boolean>>>({});
   const [loading, setLoading] = useState(true);
   const [expandedUserTask, setExpandedUserTask] = useState<string | null>(null);
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<Omit<import('@/lib/types').User, 'password'>[]>([]);
 
   const fetchData = useCallback(async () => {
     const promises: Promise<Response>[] = [fetch('/api/content'), fetch('/api/badges')];

@@ -55,7 +55,7 @@ export default function AdminPage() {
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({ whatsapp_number: '', mentoria_link: '', cartao_garantido_link: '' });
 
   // Services State
-  const [servicesData, setServicesData] = useState<any>(null);
+  const [servicesData, setServicesData] = useState<import('@/lib/types').ServicesData | null>(null);
   const [whatsappServiceForm, setWhatsappServiceForm] = useState({ title: '', description: '', price: 0, visibility: 'all' as 'all' | 'specific', userIds: '', link: '' });
   const [editingWpServiceId, setEditingWpServiceId] = useState<string | null>(null);
   const [showNewWpService, setShowNewWpService] = useState(false);
@@ -311,7 +311,7 @@ export default function AdminPage() {
     await fetch('/api/content', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stages, settings: updated }) });
   };
 
-  const saveServices = async (updated: any) => {
+  const saveServices = async (updated: import('@/lib/types').ServicesData) => {
     setServicesData(updated);
     await fetch('/api/services', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
   };
@@ -335,7 +335,7 @@ export default function AdminPage() {
 
   const deleteWhatsappService = async (id: string) => {
     if (!confirm('Excluir este serviço?')) return;
-    const updated = { ...servicesData, whatsapp_services: servicesData.whatsapp_services.filter((s: any) => s.id !== id) };
+    const updated = { ...servicesData, whatsapp_services: servicesData.whatsapp_services.filter((s: import('@/lib/types').WhatsAppService) => s.id !== id) };
     await saveServices(updated);
   };
 
@@ -1110,7 +1110,7 @@ export default function AdminPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {(servicesData?.whatsapp_services || []).map((s: any) => (
+                        {(servicesData?.whatsapp_services || []).map((s: import('@/lib/types').WhatsAppService) => (
                           <tr key={s.id} style={{ borderBottom: '1px solid var(--border)' }}>
                             <td style={{ padding: '12px' }}>
                               <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{s.title}</div>

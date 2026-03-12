@@ -22,8 +22,8 @@ export default function FinancialPage() {
       const res = await fetch('/api/users');
       if (res.ok) {
         const users = await res.json();
-        const allItems = users.flatMap((u: any) => 
-          (u.financial_items || []).map((i: any) => ({ ...i, username: u.username, userName: u.name }))
+        const allItems = users.flatMap((u: { financial_items?: import("@/lib/types").FinancialItem[]; username: string; name: string }) => 
+          (u.financial_items || []).map((i: import("@/lib/types").FinancialItem) => ({ ...i, username: u.username, userName: u.name }))
         );
         setItems(allItems);
       }
@@ -58,7 +58,7 @@ export default function FinancialPage() {
       const res = await fetch(`/api/users/${itemUsername}`);
       if (!res.ok) return;
       const targetUser = await res.json();
-      const updated = (targetUser.financial_items || []).map((i: any) => i.id === itemId ? { ...i, status: 'paid', paid_at: new Date().toISOString() } : i);
+      const updated = (targetUser.financial_items || []).map((i: import("@/lib/types").FinancialItem) => i.id === itemId ? { ...i, status: 'paid', paid_at: new Date().toISOString() } : i);
       
       await fetch(`/api/users/${itemUsername}`, {
         method: 'PUT',
@@ -68,7 +68,7 @@ export default function FinancialPage() {
       await fetchAllUsersFinancials();
     } else {
       const updated = items.map(i => i.id === itemId ? { ...i, status: 'paid' as const, paid_at: new Date().toISOString() } : i);
-      setItems(updated as any);
+      setItems(updated as (import("@/lib/types").FinancialItem & { username?: string; userName?: string })[]);
       await fetch(`/api/users/${user.username}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
