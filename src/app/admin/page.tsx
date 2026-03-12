@@ -113,10 +113,11 @@ export default function AdminPage() {
     const rows = users.map(u => {
       const pf = u.profiles?.PF;
       const pj = u.profiles?.PJ;
+      const profileType = (pf && pj) ? 'Ambos' : pf ? 'PF' : pj ? 'PJ' : 'N/A';
       const doneTasks = Object.values(u.progress || {}).filter(p => p.done).length;
       const revenue = (u.financial_items || []).filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
       return [
-        u.name, u.username, u.phone || '', u.profile_choice || '', pf?.cpf || '', pj?.cnpj || '',
+        u.name, u.username, u.phone || '', profileType, pf?.cpf || '', pj?.cnpj || '',
         pf?.score || pj?.score || '', u.credit_health?.score || '', doneTasks, revenue
       ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
     });
