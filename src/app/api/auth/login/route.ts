@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findUser, updateUser } from '@/lib/data';
 import { signToken } from '@/lib/auth';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 10 tentativas por minuto por IP
+    const ip = getClientIp(request);
+    const rl = rateLimit(`login:${ip}`, 10, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em alguns segundos.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) } }
+      );
+    }
+
     const { username, password } = await request.json();
 
     if (!username || !password) {

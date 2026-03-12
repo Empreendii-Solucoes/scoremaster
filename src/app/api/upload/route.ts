@@ -2,12 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { findUser, updateUser } from '@/lib/data';
 import { uploadFile } from '@/lib/storage';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   const token = request.cookies.get('sm_token')?.value;
   const payload = token ? verifyToken(token) : null;
   if (!payload) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+  }
+
+  // Rate limit: 10 uploads por minuto por usuário
+  const rl = rateLimit(`upload:${payload.username}`, 10, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Muitos uploads. Aguarde um momento.' }, { status: 429 });
   }
 
   try {

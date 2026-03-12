@@ -249,34 +249,24 @@ export default function LoginPage() {
           {view === 'forgot' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <h3 style={{ color: 'var(--text-main)', fontWeight: 600 }}>Recuperar Senha</h3>
-              {forgotStep === 'user' && (
-                <>
-                  <p style={{ color: 'var(--text-sec)', fontSize: '0.875rem' }}>Informe seu usuário para receber o código.</p>
-                  <div className="input-group">
-                    <label className="input-label">Usuário</label>
-                    <input className="input" placeholder="Seu usuário" value={forgotUser}
-                      onChange={e => setForgotUser(e.target.value)} />
-                  </div>
-                  <button className="btn btn-primary btn-full" onClick={() => setForgotStep('code')}>
-                    Enviar Código (Mock)
-                  </button>
-                </>
-              )}
-              {forgotStep === 'code' && (
-                <>
-                  <div className="alert alert-info">Código de simulação: <strong>1234</strong></div>
-                  <div className="input-group">
-                    <label className="input-label">Código</label>
-                    <input className="input" placeholder="1234" />
-                  </div>
-                  <button className="btn btn-primary btn-full" onClick={() => setForgotStep('done')}>
-                    Verificar
-                  </button>
-                </>
-              )}
-              {forgotStep === 'done' && (
-                <div className="alert alert-success">Senha redefinida com sucesso!</div>
-              )}
+              <p style={{ color: 'var(--text-sec)', fontSize: '0.875rem', lineHeight: 1.6 }}>
+                Para redefinir sua senha, entre em contato com nosso suporte via WhatsApp informando seu nome de usuário.
+              </p>
+              <div className="input-group">
+                <label className="input-label">Seu Usuário</label>
+                <input className="input" placeholder="Seu usuário" value={forgotUser}
+                  onChange={e => setForgotUser(e.target.value)} />
+              </div>
+              <a
+                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5500000000000'}?text=${encodeURIComponent(`Olá! Preciso recuperar minha senha do ScoreMaster. Meu usuário é: ${forgotUser}`)}`}
+                target="_blank" rel="noopener noreferrer"
+                className="btn btn-primary btn-full btn-lg"
+                style={{ textDecoration: 'none', gap: '8px' }}>
+                💬 Contatar Suporte via WhatsApp
+              </a>
+              <div className="alert alert-info" style={{ fontSize: '0.8rem' }}>
+                Nossa equipe redefinirá sua senha e entrará em contato com as novas credenciais.
+              </div>
               <button onClick={() => { setView('login'); setForgotStep('user'); setError(''); }}
                 className="btn btn-ghost btn-full">← Voltar ao Login</button>
             </div>

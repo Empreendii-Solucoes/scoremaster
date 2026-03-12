@@ -1,20 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findUser, updateUser } from '@/lib/data';
+import { findUser } from '@/lib/data';
 import { signToken } from '@/lib/auth';
 import { User } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 5 registros por minuto por IP
+    const ip = getClientIp(request);
+    const rl = rateLimit(`register:${ip}`, 5, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas tentativas. Tente novamente em alguns segundos.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) } }
+      );
+    }
+
     const { username, password, name, phone, profile_choice, cpf, cnpj } = await request.json();
 
     if (!username || !password || !name) {
       return NextResponse.json({ error: 'Preencha todos os campos obrigatórios.' }, { status: 400 });
     }
 
+    // Validações
     if (password.length < 6) {
       return NextResponse.json({ error: 'A senha deve ter pelo menos 6 caracteres.' }, { status: 400 });
+    }
+
+    if (username.length < 3 || username.length > 30) {
+      return NextResponse.json({ error: 'Usuário deve ter entre 3 e 30 caracteres.' }, { status: 400 });
+    }
+
+    if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
+      return NextResponse.json({ error: 'Usuário só pode conter letras, números, ponto, hífen e underscore.' }, { status: 400 });
     }
 
     // Verificar se usuário já existe (query atômica, sem carregar todos)
