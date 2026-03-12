@@ -3,7 +3,11 @@ import { loadServices, saveServices } from '@/lib/data';
 import { verifyToken } from '@/lib/auth';
 
 export async function GET() {
-  return NextResponse.json(await loadServices());
+  const services = await loadServices();
+
+  const response = NextResponse.json(services);
+  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+  return response;
 }
 
 export async function PUT(request: NextRequest) {

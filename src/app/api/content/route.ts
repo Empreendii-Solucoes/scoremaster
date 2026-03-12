@@ -3,7 +3,12 @@ import { loadContent, saveContent } from '@/lib/data';
 import { verifyToken } from '@/lib/auth';
 
 export async function GET() {
-  return NextResponse.json(await loadContent());
+  const content = await loadContent();
+
+  // Cache por 60s — conteúdo muda raramente (só admin edita)
+  const response = NextResponse.json(content);
+  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+  return response;
 }
 
 export async function PUT(request: NextRequest) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { loadUsers, saveUsers, findUser } from '@/lib/data';
+import { findUser, updateUser } from '@/lib/data';
 import { calculateCreditHealth } from '@/lib/scoring';
 
 // POST: Submete questionário de saúde e calcula o score
@@ -15,14 +15,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
   }
 
-  const users = await loadUsers();
-  const idx = users.findIndex(u => u.username === username);
-  if (idx === -1) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
+  const user = await findUser(username);
+  if (!user) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
 
   const creditHealth = calculateCreditHealth(answers);
 
-  users[idx] = {
-    ...users[idx],
+  const updated = await updateUser(username, {
     credit_health: {
       ...creditHealth,
       last_calculated: new Date().toISOString(),
@@ -30,12 +28,12 @@ export async function POST(request: NextRequest) {
     },
     credit_health_completed: true,
     progress: {
-      ...users[idx].progress,
+      ...user.progress,
       task_health_questionnaire: { done: true, timestamp: Date.now() },
     },
-  };
+  });
 
-  await saveUsers(users);
+  if (!updated) return NextResponse.json({ error: 'Erro ao salvar.' }, { status: 500 });
   return NextResponse.json({ success: true, credit_health: creditHealth });
 }
 
@@ -51,19 +49,17 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
   }
 
-  const users = await loadUsers();
-  const idx = users.findIndex(u => u.username === username);
-  if (idx === -1) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
+  const user = await findUser(username);
+  if (!user) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
 
-  users[idx] = {
-    ...users[idx],
+  const updated = await updateUser(username, {
     progress: {
-      ...users[idx].progress,
+      ...user.progress,
       [taskId]: { done, timestamp: Date.now() },
     },
-  };
+  });
 
-  await saveUsers(users);
+  if (!updated) return NextResponse.json({ error: 'Erro ao salvar.' }, { status: 500 });
   return NextResponse.json({ success: true });
 }
 
@@ -74,6 +70,11 @@ export async function GET(request: NextRequest) {
   if (!payload) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
 
   const username = request.nextUrl.searchParams.get('username') || payload.username;
+
+  if (payload.username !== username && !payload.isAdmin) {
+    return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
+  }
+
   const user = await findUser(username);
   if (!user) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
 
