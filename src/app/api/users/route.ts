@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadUsers, saveUsers } from '@/lib/data';
+import { loadUsers, createUser } from '@/lib/data';
 import { verifyToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
@@ -22,8 +22,9 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const users = await loadUsers();
-  users.push(body);
-  await saveUsers(users);
+  const success = await createUser(body);
+  if (!success) {
+    return NextResponse.json({ error: 'Erro ao criar usuário.' }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
 }

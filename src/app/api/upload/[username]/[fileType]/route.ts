@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 import { verifyToken } from '@/lib/auth';
 import { findUser } from '@/lib/data';
+import { getSignedUrl } from '@/lib/storage';
 
 export async function GET(
   request: NextRequest,
@@ -23,24 +22,12 @@ export async function GET(
   const upload = user.uploads?.[fileType];
   if (!upload) return NextResponse.json({ error: 'Arquivo não encontrado.' }, { status: 404 });
 
-  try {
-    const filePath = join(process.cwd(), upload.path);
-    const buffer = await readFile(filePath);
-    const ext = upload.filename.split('.').pop()?.toLowerCase();
-    const mimeMap: Record<string, string> = {
-      pdf: 'application/pdf',
-      jpg: 'image/jpeg', jpeg: 'image/jpeg',
-      png: 'image/png', webp: 'image/webp',
-    };
-    const contentType = mimeMap[ext || ''] || 'application/octet-stream';
-
-    return new NextResponse(buffer, {
-      headers: {
-        'Content-Type': contentType,
-        'Content-Disposition': `inline; filename="${upload.originalName}"`,
-      },
-    });
-  } catch {
-    return NextResponse.json({ error: 'Erro ao ler arquivo.' }, { status: 500 });
+  // Gera URL assinada temporária (1h) para download seguro
+  const signedUrl = await getSignedUrl(upload.path, 3600);
+  if (!signedUrl) {
+    return NextResponse.json({ error: 'Erro ao gerar link do arquivo.' }, { status: 500 });
   }
+
+  // Redireciona para a URL assinada
+  return NextResponse.redirect(signedUrl);
 }

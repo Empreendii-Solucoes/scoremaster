@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadUsers } from '@/lib/data';
+import { findUser, updateUser } from '@/lib/data';
 import { signToken } from '@/lib/auth';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,21 +11,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Usuário e senha são obrigatórios.' }, { status: 400 });
     }
 
-    const users = await loadUsers();
-    
-    if (users.length === 0) {
-      console.error('[AUTH] Nenhum usuário encontrado no Supabase. Verifique as credenciais no .env.local ou dashboard Vercel.');
-      // No Vercel, se o login falhar pois as env vars estão erradas, loadUsers retorna [].
-      // Vamos retornar um erro mais específico para ajudar o usuário.
-      return NextResponse.json({ 
-        error: 'Erro de conexão com o banco de dados. Configure as Variáveis de Ambiente no Vercel.',
-        debug: 'Users list is empty'
-      }, { status: 500 });
-    }
-
-    const user = users.find(u => u.username === username && u.password === password);
+    const user = await findUser(username);
 
     if (!user) {
+      return NextResponse.json({ error: 'Usuário ou senha incorretos.' }, { status: 401 });
+    }
+
+    // Migração transparente: senhas antigas estão em texto puro
+    // Senhas com hash bcrypt começam com "$2a$" ou "$2b$"
+    const isHashed = user.password.startsWith('$2a$') || user.password.startsWith('$2b$');
+
+    let passwordValid = false;
+    if (isHashed) {
+      passwordValid = await bcrypt.compare(password, user.password);
+    } else {
+      // Senha legada em texto puro — compara e migra para hash
+      passwordValid = user.password === password;
+      if (passwordValid) {
+        const hashedPassword = await bcrypt.hash(password, 12);
+        await updateUser(username, { password: hashedPassword });
+      }
+    }
+
+    if (!passwordValid) {
       return NextResponse.json({ error: 'Usuário ou senha incorretos.' }, { status: 401 });
     }
 
@@ -39,11 +48,13 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 7, // 7 dias
       path: '/',
       sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
     });
 
     return response;
-  } catch (e: any) {
-    console.error('[AUTH] Erro interno no POST /api/auth/login:', e.message);
-    return NextResponse.json({ error: 'Erro interno do servidor.', detail: e.message }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Unknown error';
+    console.error('[AUTH] Erro interno no POST /api/auth/login:', message);
+    return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 });
   }
 }

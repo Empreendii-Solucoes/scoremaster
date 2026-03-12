@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { DollarSign, TrendingUp, Clock, CheckCircle, ExternalLink, ArrowLeft, XCircle } from 'lucide-react';
@@ -9,9 +9,14 @@ import { FinancialItem } from '@/lib/types';
 export default function FinancialPage() {
   const { user, theme, refreshUser } = useAuth();
   const router = useRouter();
-  const [items, setItems] = useState<(FinancialItem & { username?: string; userName?: string })[]>([]);
+  const [items, setItems] = useState<(FinancialItem & { username?: string; userName?: string })[]>(() => {
+    if (user && !user.isAdmin) return user.financial_items || [];
+    return [];
+  });
 
-  const fetchAllUsersFinancials = async () => {
+  const lastUserRef = useRef(user?.username);
+
+  const fetchAllUsersFinancials = useCallback(async () => {
     try {
       const res = await fetch('/api/users');
       if (res.ok) {
@@ -22,22 +27,23 @@ export default function FinancialPage() {
         setItems(allItems);
       }
     } catch {}
-  };
+  }, []);
 
   useEffect(() => {
     if (!user) { router.replace('/login'); return; }
     refreshUser();
-  }, [router, refreshUser]);
+  }, [router, refreshUser, user]);
 
   useEffect(() => {
     if (user) {
       if (user.isAdmin) {
         fetchAllUsersFinancials();
-      } else {
+      } else if (user.username !== lastUserRef.current) {
         setItems(user.financial_items || []);
+        lastUserRef.current = user.username;
       }
     }
-  }, [user]);
+  }, [user, fetchAllUsersFinancials]);
 
   const totalPaid = items.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
   const totalPending = items.filter(i => i.status !== 'paid').reduce((s, i) => s + i.amount, 0);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadUsers, saveUsers, findUser } from '@/lib/data';
+import { findUser, updateUser, deleteUser } from '@/lib/data';
 import { verifyToken } from '@/lib/auth';
 
 export async function GET(
@@ -16,7 +16,6 @@ export async function GET(
   const user = await findUser(username);
   if (!user) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password: _pw, ...safeUser } = user;
   return NextResponse.json(safeUser);
 }
@@ -33,15 +32,17 @@ export async function PUT(
   }
 
   const updates = await request.json();
-  const users = await loadUsers();
-  const idx = users.findIndex(u => u.username === username);
-  if (idx === -1) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
 
-  users[idx] = { ...users[idx], ...updates };
-  await saveUsers(users);
+  // Impedir que não-admins alterem campos sensíveis
+  if (!payload.isAdmin) {
+    delete updates.isAdmin;
+    delete updates.password;
+  }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password: _pw, ...safeUser } = users[idx];
+  const updated = await updateUser(username, updates);
+  if (!updated) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
+
+  const { password: _pw, ...safeUser } = updated;
   return NextResponse.json(safeUser);
 }
 
@@ -56,11 +57,9 @@ export async function DELETE(
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
   }
 
-  const users = await loadUsers();
-  const filtered = users.filter(u => u.username !== username);
-  if (filtered.length === users.length) {
+  const success = await deleteUser(username);
+  if (!success) {
     return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
   }
-  await saveUsers(filtered);
   return NextResponse.json({ success: true });
 }

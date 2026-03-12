@@ -20,32 +20,53 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<'personal' | 'address' | 'docs'>('personal');
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
-  const [uploadedDocs, setUploadedDocs] = useState<Record<string, boolean>>({});
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, boolean>>(() => {
+    if (!user) return {};
+    const uploaded: Record<string, boolean> = {};
+    DOCS.forEach(d => { if (user.uploads?.[d.key]) uploaded[d.key] = true; });
+    return uploaded;
+  });
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const [form, setForm] = useState({
-    name: '', phone: '', occupation: '', mother_name: '', email: '',
-    address_cep: '', address_street: '', address_number: '',
-    address_complement: '', address_neighborhood: '', address_city: '', address_state: '',
-  });
+  const [form, setForm] = useState(() => ({
+    name: user?.name || '', 
+    phone: user?.phone || '', 
+    occupation: user?.occupation || '', 
+    mother_name: user?.mother_name || '', 
+    email: user?.email || '',
+    address_cep: user?.address_cep || '', 
+    address_street: user?.address_street || '', 
+    address_number: user?.address_number || '',
+    address_complement: user?.address_complement || '', 
+    address_neighborhood: user?.address_neighborhood || '', 
+    address_city: user?.address_city || '', 
+    address_state: user?.address_state || '',
+  }));
+
+  const lastUserRef = useRef(user?.username);
 
   useEffect(() => {
     if (!user) { router.replace('/login'); return; }
-    setForm({
-      name: user.name || '',
-      phone: user.phone || '',
-      occupation: user.occupation || '',
-      mother_name: user.mother_name || '',
-      email: user.email || '',
-      address_cep: user.address_cep || '',
-      address_street: user.address_street || '',
-      address_number: user.address_number || '',
-      address_complement: user.address_complement || '',
-      address_neighborhood: user.address_neighborhood || '',
-      address_city: user.address_city || '',
-      address_state: user.address_state || '',
-    });
-    // Verifica documentos já enviados
+    
+    // Sincroniza apenas se o usuário mudou (ex: login diferente)
+    if (user.username !== lastUserRef.current) {
+      setForm({
+        name: user.name || '',
+        phone: user.phone || '',
+        occupation: user.occupation || '',
+        mother_name: user.mother_name || '',
+        email: user.email || '',
+        address_cep: user.address_cep || '',
+        address_street: user.address_street || '',
+        address_number: user.address_number || '',
+        address_complement: user.address_complement || '',
+        address_neighborhood: user.address_neighborhood || '',
+        address_city: user.address_city || '',
+        address_state: user.address_state || '',
+      });
+      lastUserRef.current = user.username;
+    }
+    
     const uploaded: Record<string, boolean> = {};
     DOCS.forEach(d => { if (user.uploads?.[d.key]) uploaded[d.key] = true; });
     setUploadedDocs(uploaded);

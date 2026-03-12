@@ -11,7 +11,7 @@ interface TaskReminderProps {
 
 export default function TaskReminder({ currentTaskId, currentTaskTitle, timeoutMinutes = 5 }: TaskReminderProps) {
   const [show, setShow] = useState(false);
-  const [lastActivity, setLastActivity] = useState(Date.now());
+  const [lastActivity, setLastActivity] = useState(() => Date.now());
   const [dismissed, setDismissed] = useState(false);
 
   const resetTimer = useCallback(() => {
@@ -20,7 +20,7 @@ export default function TaskReminder({ currentTaskId, currentTaskTitle, timeoutM
   }, []);
 
   useEffect(() => {
-    if (!currentTaskId) { setShow(false); return; }
+    if (!currentTaskId) return;
     
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
     events.forEach(e => window.addEventListener(e, resetTimer, { passive: true }));

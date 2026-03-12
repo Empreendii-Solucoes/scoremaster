@@ -30,24 +30,24 @@ interface RegisterData {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profileType, setProfileType] = useState<ProfileType>('PF');
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const stored = localStorage.getItem('sm_user');
+    if (!stored) return null;
+    try { return JSON.parse(stored); } catch { return null; }
+  });
+  const [profileType, setProfileType] = useState<ProfileType>(() => {
+    if (typeof window === 'undefined') return 'PF';
+    return (localStorage.getItem('sm_profile') as ProfileType) || 'PF';
+  });
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    return (localStorage.getItem('sm_theme') as 'dark' | 'light') || 'dark';
+  });
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Carrega usuário do localStorage ao montar
-  useEffect(() => {
-    const stored = localStorage.getItem('sm_user');
-    const storedTheme = localStorage.getItem('sm_theme') as 'dark' | 'light' | null;
-    const storedProfile = localStorage.getItem('sm_profile') as ProfileType | null;
-    if (stored) {
-      try { setUser(JSON.parse(stored)); } catch { /* ignore */ }
-    }
-    if (storedTheme) setTheme(storedTheme);
-    if (storedProfile) setProfileType(storedProfile);
-    setLoading(false);
-  }, []);
+  // No initial useEffect needed as state is initialized in useState closures
 
   const login = useCallback(async (username: string, password: string) => {
     const res = await fetch('/api/auth/login', {

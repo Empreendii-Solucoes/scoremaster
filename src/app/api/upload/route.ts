@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import { verifyToken } from '@/lib/auth';
-import { loadUsers, saveUsers } from '@/lib/data';
+import { findUser, updateUser } from '@/lib/data';
+import { uploadFile } from '@/lib/storage';
 
 export async function POST(request: NextRequest) {
   const token = request.cookies.get('sm_token')?.value;
@@ -15,10 +14,15 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const username = formData.get('username') as string;
-    const fileType = formData.get('fileType') as string; // 'serasa' | 'doc_rg' | 'doc_cnh' | 'doc_comprovante' | etc.
+    const fileType = formData.get('fileType') as string;
 
     if (!file || !username || !fileType) {
       return NextResponse.json({ error: 'Dados insuficientes.' }, { status: 400 });
+    }
+
+    // Limite de 20MB
+    if (file.size > 20 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Arquivo muito grande (máx. 20MB).' }, { status: 400 });
     }
 
     // Somente o próprio usuário ou admin pode fazer upload
@@ -28,39 +32,36 @@ export async function POST(request: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const ext = file.name.split('.').pop() || 'bin';
-    const fileName = `${username}_${fileType}_${Date.now()}.${ext}`;
 
-    // Garante que o diretório existe
-    const uploadDir = join(process.cwd(), 'uploads', username);
-    await mkdir(uploadDir, { recursive: true });
+    // Upload para Supabase Storage
+    const result = await uploadFile(buffer, username, fileType, file.name);
+    if (!result) {
+      return NextResponse.json({ error: 'Erro ao salvar arquivo no storage.' }, { status: 500 });
+    }
 
-    const filePath = join(uploadDir, fileName);
-    await writeFile(filePath, buffer);
-
-    // Salva referência no usuário
-    const users = await loadUsers();
-    const idx = users.findIndex(u => u.username === username);
-    if (idx !== -1) {
-      const uploads = users[idx].uploads || {};
+    // Atualiza referência no usuário (atômico, só o usuário afetado)
+    const user = await findUser(username);
+    if (user) {
+      const uploads = user.uploads || {};
       uploads[fileType] = {
-        filename: fileName,
+        filename: result.path.split('/').pop() || '',
         originalName: file.name,
-        path: `uploads/${username}/${fileName}`,
+        path: result.path,
         uploadedAt: new Date().toISOString(),
         size: file.size,
       };
-      users[idx] = { ...users[idx], uploads };
+
+      const updates: Record<string, unknown> = { uploads };
 
       // Atualiza status do Raio-X se for arquivo Serasa
       if (fileType === 'serasa') {
-        users[idx].raio_x_status = 'pending_approval';
+        updates.raio_x_status = 'pending_approval';
       }
 
-      await saveUsers(users);
+      await updateUser(username, updates);
     }
 
-    return NextResponse.json({ success: true, fileName, path: `uploads/${username}/${fileName}` });
+    return NextResponse.json({ success: true, path: result.path });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: 'Erro ao salvar arquivo.' }, { status: 500 });

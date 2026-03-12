@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadUsers, saveUsers } from '@/lib/data';
+import { findUser, updateUser } from '@/lib/data';
 import { signToken } from '@/lib/auth';
 import { User } from '@/lib/types';
+import { supabase } from '@/lib/supabase';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,13 +13,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Preencha todos os campos obrigatórios.' }, { status: 400 });
     }
 
-    const users = await loadUsers();
+    if (password.length < 6) {
+      return NextResponse.json({ error: 'A senha deve ter pelo menos 6 caracteres.' }, { status: 400 });
+    }
 
-    // Verificar se usuário já existe
-    const existing = users.find(u => u.username === username);
+    // Verificar se usuário já existe (query atômica, sem carregar todos)
+    const existing = await findUser(username);
     if (existing) {
       return NextResponse.json({ error: 'Nome de usuário já está em uso.' }, { status: 409 });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     const profiles: User['profiles'] = {};
 
@@ -45,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const newUser: User = {
       username,
-      password,
+      password: hashedPassword,
       name,
       email: '',
       phone: phone || '',
@@ -70,12 +76,18 @@ export async function POST(request: NextRequest) {
       last_activity: null,
     };
 
-    users.push(newUser);
-    await saveUsers(users);
+    // Insert atômico direto no Supabase (não usa saveUsers que reescreve todos)
+    const { error } = await supabase
+      .from('users')
+      .upsert({ username, data: newUser }, { onConflict: 'username' });
+
+    if (error) {
+      console.error('[REGISTER] Supabase error:', error);
+      return NextResponse.json({ error: 'Erro ao criar conta.' }, { status: 500 });
+    }
 
     const token = signToken({ username: newUser.username, isAdmin: false });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, ...safeUser } = newUser;
 
     const response = NextResponse.json({ user: safeUser, token }, { status: 201 });
@@ -84,10 +96,12 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
       sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
     });
 
     return response;
   } catch (e) {
+    console.error('[REGISTER] Error:', e);
     return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 });
   }
 }
