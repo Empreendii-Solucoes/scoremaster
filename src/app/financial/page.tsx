@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { DollarSign, TrendingUp, Clock, CheckCircle, ExternalLink, ArrowLeft, XCircle } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
 import { FinancialItem } from '@/lib/types';
 
 export default function FinancialPage() {
@@ -85,7 +86,9 @@ export default function FinancialPage() {
   if (!user) return null;
 
   return (
-    <div data-theme={theme} style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app)', padding: '32px' }}>
+    <div data-theme={theme} style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app)', display: 'flex' }}>
+      <Sidebar />
+      <div className="main-content" style={{ marginLeft: '240px', flex: 1, padding: '28px 32px', maxWidth: 'calc(100% - 240px)' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
           <button onClick={() => router.push('/dashboard')} className="btn btn-ghost btn-sm">
@@ -184,6 +187,7 @@ export default function FinancialPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

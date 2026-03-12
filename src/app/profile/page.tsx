@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Loader2, User, MapPin, FileText, CheckCircle, Upload, X } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
 
 const DOCS = [
   { key: 'doc_cnh', label: 'CNH ou RG', required: true },
@@ -139,7 +140,9 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div data-theme={theme} style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app)', padding: '32px' }}>
+    <div data-theme={theme} style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app)', display: 'flex' }}>
+      <Sidebar />
+      <div className="main-content" style={{ marginLeft: '240px', flex: 1, padding: '28px 32px', maxWidth: 'calc(100% - 240px)' }}>
       <div style={{ maxWidth: '700px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
           <button onClick={() => router.push('/dashboard')} className="btn btn-ghost btn-sm"><ArrowLeft size={16} /></button>
@@ -294,6 +297,7 @@ export default function ProfilePage() {
             </button>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

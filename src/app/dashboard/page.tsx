@@ -23,10 +23,11 @@ const RechartsBar = dynamic(() => import('recharts').then(m => {
   };
 }), { ssr: false });
 import {
-  BarChart2, DollarSign, CreditCard, User, Settings, LogOut, TrendingUp,
+  DollarSign, CreditCard, User, TrendingUp,
   Award, Play, CheckSquare, FileText, Zap, Upload, Lock,
   ChevronDown, ChevronUp, CheckCircle, Loader2, X, Brain,
 } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
 import { Stage, Task, UserTask } from '@/lib/types';
 import { calculateProgress, getUnlockedStages, getProgressMessage } from '@/lib/scoring';
 import { BadgesData } from '@/lib/types';
@@ -321,14 +322,6 @@ export default function Dashboard() {
     return null;
   })();
 
-  const navItems = [
-    { label: 'Dashboard', icon: BarChart2, href: '/dashboard', active: true },
-    { label: 'Financeiro', icon: DollarSign, href: '/financial' },
-    { label: 'Cartões', icon: CreditCard, href: '/services' },
-    { label: 'Meu Perfil', icon: User, href: '/profile' },
-    ...(user.isAdmin ? [{ label: 'Admin', icon: Settings, href: '/admin' }] : []),
-  ];
-
   const renderTask = (task: Task, isDone: boolean, isUnlocked: boolean) => {
     const hasUpload = user.uploads?.[task.id === 'task_raio_x_upload' ? 'serasa' : task.id];
     const isHealthDone = progress['task_health_questionnaire']?.done;
@@ -464,69 +457,12 @@ export default function Dashboard() {
   return (
     <div data-theme={theme} style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex' }}>
       <TaskReminder currentTaskId={firstIncompleteTask?.id} currentTaskTitle={firstIncompleteTask?.title} timeoutMinutes={5} />
-      {/* Sidebar */}
-      <div style={{ width: '240px', position: 'fixed', top: 0, left: 0, bottom: 0, borderRight: '1px solid var(--border)', background: 'var(--bg-sidebar)', zIndex: 40, display: 'flex', flexDirection: 'column', padding: '20px 14px' }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', paddingLeft: '8px' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'linear-gradient(135deg, var(--gold), var(--gold-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <TrendingUp size={18} color="#000" strokeWidth={2.5} />
-          </div>
-          <div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-main)' }}>Empreendii Soluções <span className="text-gold">ScoreMaster</span></div>
-            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Do 0 ao Crédito</div>
-          </div>
-        </div>
-
-        {/* Profile card */}
-        <div style={{ background: 'var(--gold-bg)', border: '1px solid rgba(238,189,43,0.15)', borderRadius: '14px', padding: '14px', marginBottom: '20px' }}>
-          <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '2px' }}>{profileType === 'PF' ? 'Pessoa Física' : 'Pessoa Jurídica'}</div>
-          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>{user.name}</div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--gold)' }}>{user.credit_health?.level || 'Iniciante'} • {user.total_points || 0} pts</div>
-          <div style={{ marginTop: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Jornada</span>
-              <span style={{ fontSize: '0.65rem', color: 'var(--gold)', fontWeight: 600 }}>{progressPct}%</span>
-            </div>
-            <div className="progress-bar" style={{ height: '4px' }}>
-              <div className="progress-fill" style={{ width: `${progressPct}%` }} />
-            </div>
-          </div>
-        </div>
-
-        {/* Nav */}
-        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          {navItems.map(item => (
-            <button key={item.label} onClick={() => router.push(item.href)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
-                borderRadius: '12px', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%',
-                background: item.active ? 'rgba(238,189,43,0.1)' : 'transparent',
-                color: item.active ? 'var(--gold)' : 'var(--text-muted)',
-                fontWeight: item.active ? 600 : 400, fontSize: '0.875rem', transition: 'all 0.15s',
-              }}>
-              <item.icon size={16} />
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        {/* Bottom */}
-        <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <button onClick={() => router.push('/theme-select')}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '10px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.825rem' }}>
-            ☀️ {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
-          </button>
-          <button onClick={logout}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '10px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--danger)', fontSize: '0.825rem' }}>
-            <LogOut size={15} /> Sair
-          </button>
-        </div>
-      </div>
+      <Sidebar />
 
       {/* Main Content */}
-      <main style={{ marginLeft: '240px', flex: 1, padding: '28px 32px', maxWidth: 'calc(100% - 240px)' }}>
+      <main className="main-content" style={{ marginLeft: '240px', flex: 1, padding: '28px 32px', maxWidth: 'calc(100% - 240px)' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+        <div className="header-stats" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.5px', marginBottom: '4px' }}>
               Olá, {user.name.split(' ')[0]}! 👋
@@ -546,7 +482,7 @@ export default function Dashboard() {
         </div>
 
         {/* KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
+        <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
           {[
             {
               label: 'Progresso Geral', value: `${progressPct}%`, color: 'var(--gold)',
@@ -651,7 +587,7 @@ export default function Dashboard() {
               <TrendingUp size={18} color="var(--gold)" />
               <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>Visão Geral (Admin)</h2>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '16px', marginBottom: '28px' }}>
+            <div className="admin-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '16px', marginBottom: '28px' }}>
               <div className="card">
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '16px' }}>Progresso por Usuário (%)</div>
                 <RechartsBar
@@ -723,7 +659,7 @@ export default function Dashboard() {
     )}
 
         {/* Quick links */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+        <div className="quick-links-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
           {[
             { icon: DollarSign, label: 'Central Financeira', sub: 'Veja faturas e pagamentos', href: '/financial', color: '#10B981' },
             { icon: CreditCard, label: 'Cartões & Serviços', sub: 'Explore ofertas exclusivas', href: '/services', color: 'var(--gold)' },

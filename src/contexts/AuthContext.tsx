@@ -50,24 +50,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // No initial useEffect needed as state is initialized in useState closures
 
   const login = useCallback(async (username: string, password: string) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) return { error: data.error || 'Erro ao fazer login.' };
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error || 'Erro ao fazer login.' };
 
-    setUser(data.user);
-    localStorage.setItem('sm_user', JSON.stringify(data.user));
+      setUser(data.user);
+      localStorage.setItem('sm_user', JSON.stringify(data.user));
 
-    // Auto-select profile
-    const profiles = data.user.profiles || {};
-    const ptype: ProfileType = 'PF' in profiles ? 'PF' : 'PJ';
-    setProfileType(ptype);
-    localStorage.setItem('sm_profile', ptype);
+      // Auto-select profile
+      const profiles = data.user.profiles || {};
+      const ptype: ProfileType = 'PF' in profiles ? 'PF' : 'PJ';
+      setProfileType(ptype);
+      localStorage.setItem('sm_profile', ptype);
 
-    return {};
+      return {};
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const logout = useCallback(async () => {
@@ -80,17 +85,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const register = useCallback(async (data: RegisterData) => {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const result = await res.json();
-    if (!res.ok) return { error: result.error || 'Erro ao registrar.' };
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (!res.ok) return { error: result.error || 'Erro ao registrar.' };
 
-    setUser(result.user);
-    localStorage.setItem('sm_user', JSON.stringify(result.user));
-    return {};
+      setUser(result.user);
+      localStorage.setItem('sm_user', JSON.stringify(result.user));
+      return {};
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const refreshUser = useCallback(async () => {

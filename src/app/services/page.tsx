@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { CreditCard, BookOpen, ArrowLeft, MessageCircle, Calculator, ChevronDown } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
 import { ServicesData, CreditCard as CCType } from '@/lib/types';
 
 export default function ServicesPage() {
@@ -50,7 +51,9 @@ export default function ServicesPage() {
   const categoryLabel = { guaranteed: 'Crédito Garantido', education: 'Mentoria/Educação', standard: 'Padrão' };
 
   return (
-    <div data-theme={theme} style={{ minHeight: '100vh', background: 'var(--bg-app)', padding: '32px' }}>
+    <div data-theme={theme} style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex' }}>
+      <Sidebar />
+      <div className="main-content" style={{ marginLeft: '240px', flex: 1, padding: '28px 32px', maxWidth: 'calc(100% - 240px)' }}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
           <button onClick={() => router.push('/dashboard')} className="btn btn-ghost btn-sm"><ArrowLeft size={16} /></button>
@@ -191,6 +194,7 @@ export default function ServicesPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
   );
 }
