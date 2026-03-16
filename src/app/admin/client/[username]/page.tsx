@@ -11,6 +11,22 @@ import {
 import { User as UserType, Stage, BadgesData, ProfileType } from '@/lib/types';
 import { calculateProgress, getUnlockedStages, getProgressMessage } from '@/lib/scoring';
 
+const StatusBadge = ({ status }: { status: string }) => {
+  const map: Record<string, { label: string; color: string }> = {
+    pending: { label: 'Pendente', color: 'var(--warning)' },
+    pending_approval: { label: 'Aguardando', color: 'var(--info)' },
+    approved: { label: 'Aprovado', color: 'var(--success)' },
+    rejected: { label: 'Rejeitado', color: 'var(--danger)' },
+  };
+  const s = map[status] || { label: status, color: 'var(--text-muted)' };
+  return (
+    <span style={{
+      padding: '3px 10px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 600,
+      background: `${s.color}18`, color: s.color, border: `1px solid ${s.color}33`,
+    }}>{s.label}</span>
+  );
+};
+
 export default function AdminClientView() {
   const { user: adminUser, theme } = useAuth();
   const router = useRouter();
@@ -64,22 +80,6 @@ export default function AdminClientView() {
   const unlockedStages = stages.length ? getUnlockedStages(client, stages) : new Set<string>();
   const progressMessage = badges ? getProgressMessage(badges, progressPct) : '';
   const uploads = client.uploads || {};
-
-  const StatusBadge = ({ status }: { status: string }) => {
-    const map: Record<string, { label: string; color: string }> = {
-      pending: { label: 'Pendente', color: 'var(--warning)' },
-      pending_approval: { label: 'Aguardando', color: 'var(--info)' },
-      approved: { label: 'Aprovado', color: 'var(--success)' },
-      rejected: { label: 'Rejeitado', color: 'var(--danger)' },
-    };
-    const s = map[status] || { label: status, color: 'var(--text-muted)' };
-    return (
-      <span style={{
-        padding: '3px 10px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 600,
-        background: `${s.color}18`, color: s.color, border: `1px solid ${s.color}33`,
-      }}>{s.label}</span>
-    );
-  };
 
   return (
     <div data-theme={theme} style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>

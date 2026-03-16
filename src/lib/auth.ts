@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -6,7 +6,9 @@ if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
   console.warn('⚠️  WARNING: JWT_SECRET not set! Using fallback. Set JWT_SECRET in Vercel env vars for production security.');
 }
 
-const secret = JWT_SECRET || 'dev-only-scoremaster-secret-key-change-me';
+const secret = new TextEncoder().encode(
+  JWT_SECRET || 'dev-only-scoremaster-secret-key-change-me'
+);
 
 export interface TokenPayload {
   username: string;
@@ -15,13 +17,18 @@ export interface TokenPayload {
   exp?: number;
 }
 
-export function signToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, secret, { expiresIn: '7d' });
+export async function signToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): Promise<string> {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(secret);
 }
 
-export function verifyToken(token: string): TokenPayload | null {
+export async function verifyToken(token: string): Promise<TokenPayload | null> {
   try {
-    return jwt.verify(token, secret) as TokenPayload;
+    const { payload } = await jwtVerify(token, secret);
+    return payload as unknown as TokenPayload;
   } catch {
     return null;
   }

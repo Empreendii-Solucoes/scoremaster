@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { User, ProfileType } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
@@ -52,12 +52,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (username: string, password: string) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
+      let res;
+      try {
+        res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+      } catch {
+        return { error: 'Erro de conexão. Verifique sua internet e tente novamente.' };
+      }
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        return { error: 'Resposta inesperada do servidor. Tente novamente.' };
+      }
+
       if (!res.ok) return { error: data.error || 'Erro ao fazer login.' };
 
       setUser(data.user);
@@ -87,12 +99,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = useCallback(async (data: RegisterData) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json();
+      let res;
+      try {
+        res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } catch {
+        return { error: 'Erro de conexão. Verifique sua internet e tente novamente.' };
+      }
+
+      let result;
+      try {
+        result = await res.json();
+      } catch {
+        return { error: 'Resposta inesperada do servidor. Tente novamente.' };
+      }
+
       if (!res.ok) return { error: result.error || 'Erro ao registrar.' };
 
       setUser(result.user);

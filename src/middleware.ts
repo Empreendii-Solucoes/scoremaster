@@ -1,11 +1,8 @@
-// NOTA: Next.js 16 avisa que "middleware" será substituído por "proxy".
-// A API de proxy ainda é experimental/instável, então mantemos middleware
-// que funciona perfeitamente. Migrar quando a API proxy estabilizar.
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'scoremaster-secret-key'
+  process.env.JWT_SECRET || 'dev-only-scoremaster-secret-key-change-me'
 );
 
 // Rotas que NÃO precisam de autenticação
@@ -13,6 +10,7 @@ const PUBLIC_PATHS = [
   '/api/auth/login',
   '/api/auth/register',
   '/api/auth/logout',
+  '/api/auth/reset-password',
   '/login',
   '/',
 ];
@@ -22,6 +20,15 @@ const ADMIN_PATHS = [
   '/admin',
   '/api/users', // GET all users
 ];
+
+async function verifyJWT(token: string): Promise<{ username: string; isAdmin: boolean } | null> {
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload as unknown as { username: string; isAdmin: boolean };
+  } catch {
+    return null;
+  }
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -43,26 +50,25 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
     }
 
-    try {
-      const { payload } = await jwtVerify(token, JWT_SECRET);
-
-      // Verificar admin para rotas admin
-      if (ADMIN_PATHS.some(p => pathname.startsWith(p)) && !payload.isAdmin) {
-        // Exceção: /api/users/[username] pode ser acessado pelo próprio usuário
-        const userMatch = pathname.match(/^\/api\/users\/([^/]+)/);
-        if (!userMatch || userMatch[1] !== payload.username) {
-          return NextResponse.json({ error: 'Acesso restrito.' }, { status: 403 });
-        }
-      }
-
-      // Adicionar info do user ao header para os handlers
-      const response = NextResponse.next();
-      response.headers.set('x-user-username', payload.username as string);
-      response.headers.set('x-user-isAdmin', String(payload.isAdmin));
-      return response;
-    } catch {
+    const payload = await verifyJWT(token);
+    if (!payload) {
       return NextResponse.json({ error: 'Token inválido.' }, { status: 401 });
     }
+
+    // Verificar admin para rotas admin
+    if (ADMIN_PATHS.some(p => pathname.startsWith(p)) && !payload.isAdmin) {
+      // Exceção: /api/users/[username] pode ser acessado pelo próprio usuário
+      const userMatch = pathname.match(/^\/api\/users\/([^/]+)/);
+      if (!userMatch || userMatch[1] !== payload.username) {
+        return NextResponse.json({ error: 'Acesso restrito.' }, { status: 403 });
+      }
+    }
+
+    // Adicionar info do user ao header para os handlers
+    const response = NextResponse.next();
+    response.headers.set('x-user-username', payload.username);
+    response.headers.set('x-user-isAdmin', String(payload.isAdmin));
+    return response;
   }
 
   // Para páginas protegidas (não-API), redirecionar para login se não autenticado
@@ -75,14 +81,14 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    try {
-      await jwtVerify(token, JWT_SECRET);
-      return NextResponse.next();
-    } catch {
+    const payload = await verifyJWT(token);
+    if (!payload) {
       const response = NextResponse.redirect(new URL('/login', request.url));
       response.cookies.delete('sm_token');
       return response;
     }
+
+    return NextResponse.next();
   }
 
   return NextResponse.next();

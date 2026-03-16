@@ -22,9 +22,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Usuário e senha são obrigatórios.' }, { status: 400 });
     }
 
-    const user = await findUser(username);
+    let user;
+    try {
+      user = await findUser(username);
+    } catch (dbError) {
+      console.error('[AUTH] Erro de banco ao buscar usuário:', dbError);
+      return NextResponse.json(
+        { error: 'Erro ao conectar com o banco de dados. Tente novamente.' },
+        { status: 503 }
+      );
+    }
 
     if (!user) {
+      console.log('[AUTH] Usuário não encontrado:', username);
       return NextResponse.json({ error: 'Usuário ou senha incorretos.' }, { status: 401 });
     }
 
@@ -45,10 +55,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (!passwordValid) {
+      console.log('[AUTH] Senha incorreta para usuário:', username);
       return NextResponse.json({ error: 'Usuário ou senha incorretos.' }, { status: 401 });
     }
 
-    const token = signToken({ username: user.username, isAdmin: !!user.isAdmin });
+    const token = await signToken({ username: user.username, isAdmin: !!user.isAdmin });
 
     // Remove senha antes de enviar
     const { password: _pw, ...safeUser } = user;

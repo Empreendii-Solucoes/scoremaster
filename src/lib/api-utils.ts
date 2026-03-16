@@ -35,6 +35,7 @@ export function withErrorHandler(
  * Remove a senha do objeto User antes de enviar ao cliente
  */
 export function sanitizeUser<T extends { password?: string }>(user: T): Omit<T, 'password'> {
-  const { password: _pw, ...safe } = user;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: _, ...safe } = user;
   return safe;
 }

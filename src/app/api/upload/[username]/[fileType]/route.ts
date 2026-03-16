@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const { username, fileType } = await params;
   const token = request.cookies.get('sm_token')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? await verifyToken(token) : null;
 
   // Somente o próprio usuário ou admin pode ver
   if (!payload || (payload.username !== username && !payload.isAdmin)) {

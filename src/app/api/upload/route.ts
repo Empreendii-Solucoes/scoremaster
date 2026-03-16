@@ -6,7 +6,7 @@ import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   const token = request.cookies.get('sm_token')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? await verifyToken(token) : null;
   if (!payload) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
   }

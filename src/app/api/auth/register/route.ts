@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Erro ao criar conta.' }, { status: 500 });
     }
 
-    const token = signToken({ username: newUser.username, isAdmin: false });
+    const token = await signToken({ username: newUser.username, isAdmin: false });
 
     const { password: _pw, ...safeUser } = newUser;
 

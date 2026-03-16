@@ -4,7 +4,7 @@ import { verifyToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get('sm_token')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? await verifyToken(token) : null;
   if (!payload?.isAdmin) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
   }
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const token = request.cookies.get('sm_token')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? await verifyToken(token) : null;
   if (!payload?.isAdmin) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
   }

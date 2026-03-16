@@ -11,7 +11,6 @@ export default function ServicesPage() {
   const { user, theme } = useAuth();
   const router = useRouter();
   const [services, setServices] = useState<ServicesData | null>(null);
-  const [selectedCard, setSelectedCard] = useState<CCType | null>(null);
   const [selectedValue, setSelectedValue] = useState<number>(0);
 
   useEffect(() => {
@@ -81,7 +80,7 @@ export default function ServicesPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
                   {cards.map(card => {
                     const Icon = categoryIcon[card.category] || CreditCard;
-                    const isExpanded = selectedCard?.id === card.id;
+                    const isExpanded = false;
 
                     return (
                       <div key={card.id} className="card" style={{

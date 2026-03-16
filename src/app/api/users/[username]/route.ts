@@ -8,7 +8,7 @@ export async function GET(
 ) {
   const { username } = await params;
   const token = request.cookies.get('sm_token')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? await verifyToken(token) : null;
   if (!payload || (payload.username !== username && !payload.isAdmin)) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
   }
@@ -26,7 +26,7 @@ export async function PUT(
 ) {
   const { username } = await params;
   const token = request.cookies.get('sm_token')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? await verifyToken(token) : null;
   if (!payload || (payload.username !== username && !payload.isAdmin)) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
   }
@@ -52,7 +52,7 @@ export async function DELETE(
 ) {
   const { username } = await params;
   const token = request.cookies.get('sm_token')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? await verifyToken(token) : null;
   if (!payload?.isAdmin) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
   }

@@ -16,6 +16,7 @@ export default function Sidebar() {
 
   // Fecha sidebar mobile ao navegar
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false);
   }, [pathname]);
 

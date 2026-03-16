@@ -6,7 +6,7 @@ import { calculateCreditHealth } from '@/lib/scoring';
 // POST: Submete questionário de saúde e calcula o score
 export async function POST(request: NextRequest) {
   const token = request.cookies.get('sm_token')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? await verifyToken(token) : null;
   if (!payload) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
 
   const { username, answers } = await request.json();
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 // PUT: Marca uma tarefa como concluída (usado pelo upload handler)
 export async function PUT(request: NextRequest) {
   const token = request.cookies.get('sm_token')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? await verifyToken(token) : null;
   if (!payload) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
 
   const { username, taskId, done } = await request.json();
@@ -66,7 +66,7 @@ export async function PUT(request: NextRequest) {
 // GET: Retorna os dados de saúde financeira do usuário
 export async function GET(request: NextRequest) {
   const token = request.cookies.get('sm_token')?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? await verifyToken(token) : null;
   if (!payload) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
 
   const username = request.nextUrl.searchParams.get('username') || payload.username;

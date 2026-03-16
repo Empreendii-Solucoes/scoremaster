@@ -14,6 +14,7 @@ export async function loadUsers(): Promise<User[]> {
 
 /**
  * Busca um único usuário por username (query direta, sem carregar todos)
+ * Lança erro em caso de falha de conexão/RLS para diferenciar de "não encontrado"
  */
 export async function findUser(username: string): Promise<User | undefined> {
   const { data, error } = await supabase
@@ -21,7 +22,18 @@ export async function findUser(username: string): Promise<User | undefined> {
     .select('data')
     .eq('username', username)
     .single();
-  if (error || !data) return undefined;
+
+  if (error) {
+    // PGRST116 = "no rows found" — isso é normal, não é erro
+    if (error.code === 'PGRST116') {
+      return undefined;
+    }
+    // Qualquer outro erro (RLS, conexão, etc.) é um problema real
+    console.error('[DATA] findUser error:', error.code, error.message);
+    throw new Error(`Database error: ${error.message}`);
+  }
+
+  if (!data) return undefined;
   return data.data as User;
 }
 
@@ -40,7 +52,10 @@ export async function updateUser(username: string, updates: Partial<User>): Prom
   if (fetchError || !row) return null;
 
   const currentUser = row.data as User;
-  const updatedUser = deepMerge(currentUser, updates) as User;
+  const updatedUser = deepMerge(
+    currentUser as unknown as Record<string, unknown>,
+    updates as unknown as Record<string, unknown>
+  ) as unknown as User;
 
   // Salva somente este usuário
   const { error: saveError } = await supabase

@@ -44,33 +44,32 @@ export default function ProfilePage() {
     address_state: user?.address_state || '',
   }));
 
-  const lastUserRef = useRef(user?.username);
+  const [prevUsername, setPrevUsername] = useState(user?.username);
 
-  useEffect(() => {
-    if (!user) { router.replace('/login'); return; }
-    
-    // Sincroniza apenas se o usuário mudou (ex: login diferente)
-    if (user.username !== lastUserRef.current) {
-      setForm({
-        name: user.name || '',
-        phone: user.phone || '',
-        occupation: user.occupation || '',
-        mother_name: user.mother_name || '',
-        email: user.email || '',
-        address_cep: user.address_cep || '',
-        address_street: user.address_street || '',
-        address_number: user.address_number || '',
-        address_complement: user.address_complement || '',
-        address_neighborhood: user.address_neighborhood || '',
-        address_city: user.address_city || '',
-        address_state: user.address_state || '',
-      });
-      lastUserRef.current = user.username;
-    }
-    
+  // Sincroniza apenas se o usuário mudou (ex: login diferente)
+  if (user && user.username !== prevUsername) {
+    setForm({
+      name: user.name || '',
+      phone: user.phone || '',
+      occupation: user.occupation || '',
+      mother_name: user.mother_name || '',
+      email: user.email || '',
+      address_cep: user.address_cep || '',
+      address_street: user.address_street || '',
+      address_number: user.address_number || '',
+      address_complement: user.address_complement || '',
+      address_neighborhood: user.address_neighborhood || '',
+      address_city: user.address_city || '',
+      address_state: user.address_state || '',
+    });
     const uploaded: Record<string, boolean> = {};
     DOCS.forEach(d => { if (user.uploads?.[d.key]) uploaded[d.key] = true; });
     setUploadedDocs(uploaded);
+    setPrevUsername(user.username);
+  }
+
+  useEffect(() => {
+    if (!user) { router.replace('/login'); return; }
   }, [user, router]);
 
   const lookupCep = async () => {
