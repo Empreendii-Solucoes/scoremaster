@@ -34,8 +34,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user) {
-      console.log('[AUTH] Usuário não encontrado:', username);
-      return NextResponse.json({ error: 'Usuário ou senha incorretos.' }, { status: 401 });
+      const hasSupaUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const hasSupaAnon = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+      console.log('[AUTH] Usuário não encontrado:', username, { hasSupaUrl, hasSupaAnon, hasServiceKey });
+      return NextResponse.json({ 
+        error: 'Usuário ou senha incorretos.',
+        _debug: { hasSupaUrl, hasSupaAnon, hasServiceKey, searchedFor: username }
+      }, { status: 401 });
     }
 
     // Migração transparente: senhas antigas estão em texto puro
@@ -55,8 +61,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (!passwordValid) {
-      console.log('[AUTH] Senha incorreta para usuário:', username);
-      return NextResponse.json({ error: 'Usuário ou senha incorretos.' }, { status: 401 });
+      console.log('[AUTH] Senha incorreta para usuário:', username, { isHashed });
+      return NextResponse.json({ 
+        error: 'Usuário ou senha incorretos.',
+        _debug: { stage: 'password', isHashed, userFound: true }
+      }, { status: 401 });
     }
 
     const token = await signToken({ username: user.username, isAdmin: !!user.isAdmin });
