@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { DollarSign, TrendingUp, Clock, CheckCircle, ExternalLink, ArrowLeft, XCircle } from 'lucide-react';
+import { DollarSign, TrendingUp, Clock, CheckCircle, ExternalLink, ArrowLeft, XCircle, Trash2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import { FinancialItem } from '@/lib/types';
 
@@ -76,6 +76,24 @@ export default function FinancialPage() {
       });
       await refreshUser();
     }
+  };
+
+  const deleteItem = async (itemId: string, itemUsername?: string) => {
+    if (!user || !user.isAdmin) return;
+    if (!confirm('Tem certeza que deseja excluir este lançamento financeiro?')) return;
+
+    const targetUsername = itemUsername || user.username;
+    const res = await fetch(`/api/users/${targetUsername}`);
+    if (!res.ok) return;
+    const targetUser = await res.json();
+    const updatedItems = (targetUser.financial_items || []).filter((i: import("@/lib/types").FinancialItem) => i.id !== itemId);
+
+    await fetch(`/api/users/${targetUsername}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ financial_items: updatedItems }),
+    });
+    await fetchAllUsersFinancials();
   };
 
   const fmt = (v: number) => `R$ ${v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
@@ -180,6 +198,12 @@ export default function FinancialPage() {
                           <CheckCircle size={12} /> Marcar Pago
                         </button>
                       </div>
+                    )}
+                    {user.isAdmin && (
+                      <button onClick={() => deleteItem(item.id, item.username)} title="Excluir lançamento" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: 'var(--danger)', opacity: 0.6, marginLeft: item.status === 'paid' ? '8px' : '0' }}
+                        onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}>
+                        <Trash2 size={14} />
+                      </button>
                     )}
                   </div>
                 );

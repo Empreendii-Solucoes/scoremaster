@@ -295,6 +295,15 @@ export default function AdminPage() {
     fetchData();
   };
 
+  const deleteFinancialItem = async (targetUsername: string, itemId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este lançamento financeiro?')) return;
+    const target = users.find(u => u.username === targetUsername);
+    if (!target) return;
+    const updatedItems = (target.financial_items || []).filter(i => i.id !== itemId);
+    await fetch(`/api/users/${targetUsername}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ financial_items: updatedItems }) });
+    fetchData();
+  };
+
   const pendingApproval = users.filter(u => u.raio_x_status === 'pending_approval');
   const totalRevenue = users.reduce((s, u) => s + (u.financial_items || []).filter(i => i.status === 'paid').reduce((ss, i) => ss + i.amount, 0), 0);
   const totalPending = users.reduce((s, u) => s + (u.financial_items || []).filter(i => i.status !== 'paid').reduce((ss, i) => ss + i.amount, 0), 0);
@@ -797,6 +806,10 @@ export default function AdminPage() {
                                             <CheckCircle size={10} /> Marcar Pago
                                           </button>
                                         )}
+                                        <button onClick={() => deleteFinancialItem(u.username, item.id)} title="Excluir lançamento" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', color: 'var(--danger)', opacity: 0.6 }}
+                                          onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}>
+                                          <Trash2 size={12} />
+                                        </button>
                                       </div>
                                     ))}
                                   </div>
