@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import {
   Users, DollarSign, Settings, CheckCircle, XCircle, Trash2,
   Eye, TrendingUp, Clock, Shield, Plus, AlertTriangle, LogOut, ChevronDown, ChevronUp,
-  Edit2, Send, ListChecks, Link2, FileText, X, UserCheck, Save, FolderOpen, Download, Layers, RotateCcw, MessageSquare,
+  Edit2, Send, ListChecks, Link2, FileText, X, UserCheck, Save, FolderOpen, Download, Layers, RotateCcw, MessageSquare, UserPlus,
 } from 'lucide-react';
 import { User, Stage, Task, UserTask, GlobalSettings } from '@/lib/types';
 
-type AdminTab = 'users' | 'financial' | 'tasks' | 'content' | 'settings' | 'services';
+type AdminTab = 'users' | 'financial' | 'tasks' | 'content' | 'settings' | 'services' | 'indications';
 
 interface NewTaskForm {
   title: string;
@@ -55,6 +55,10 @@ export default function AdminPage() {
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({ whatsapp_number: '', mentoria_link: '', cartao_garantido_link: '' });
   const [settingsSaved, setSettingsSaved] = useState(false);
 
+  // Indications State
+  const [indications, setIndications] = useState<any[]>([]);
+  const [editingIndication, setEditingIndication] = useState<any>(null);
+
   // Services State
   const [servicesData, setServicesData] = useState<import('@/lib/types').ServicesData | null>(null);
   const [whatsappServiceForm, setWhatsappServiceForm] = useState({ title: '', description: '', price: 0, visibility: 'all' as 'all' | 'specific', userIds: '', link: '' });
@@ -79,6 +83,10 @@ export default function AdminPage() {
     const servicesRes = await fetch('/api/services');
     if (servicesRes.ok) {
       setServicesData(await servicesRes.json());
+    }
+    const indicationsRes = await fetch('/api/indications');
+    if (indicationsRes.ok) {
+      setIndications(await indicationsRes.json());
     }
     setLoading(false);
   }, []);
@@ -360,6 +368,7 @@ export default function AdminPage() {
     { id: 'tasks' as AdminTab, label: 'Tarefas', icon: ListChecks },
     { id: 'financial' as AdminTab, label: 'Financeiro', icon: DollarSign },
     { id: 'services' as AdminTab, label: 'Serviços', icon: MessageSquare },
+    { id: 'indications' as AdminTab, label: 'Indicações', icon: UserPlus },
     { id: 'content' as AdminTab, label: 'Fases', icon: Layers },
     { id: 'settings' as AdminTab, label: 'Configurações', icon: Settings },
   ];
@@ -1151,6 +1160,90 @@ export default function AdminPage() {
                       </tbody>
                     </table>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* === INDICATIONS TAB === */}
+            {tab === 'indications' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="card" style={{ padding: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+                    <UserPlus size={18} color="var(--gold)" />
+                    <h3 style={{ color: 'var(--text-main)', fontWeight: 700 }}>Indicações Recebidas</h3>
+                  </div>
+                  {indications.length === 0 ? (
+                    <p style={{ color: 'var(--text-sec)', textAlign: 'center', padding: '20px' }}>Nenhuma indicação ainda.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {indications.map(ind => (
+                        <div key={ind.id} style={{ padding: '16px', background: 'var(--bg-input)', borderRadius: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                            <div>
+                              <div style={{ color: 'var(--text-main)', fontWeight: 600 }}>{ind.indicated_name}</div>
+                              <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{ind.indicated_phone}</div>
+                              <div style={{ color: 'var(--text-sec)', fontSize: '0.75rem', marginTop: '4px' }}>
+                                Indicado por: <strong>{ind.username}</strong>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button onClick={() => setEditingIndication(ind)} className="btn btn-sm btn-ghost"><Edit2 size={14} /></button>
+                              <button onClick={async () => {
+                                if (!confirm('Excluir indicação?')) return;
+                                await fetch(`/api/indications?id=${ind.id}`, { method: 'DELETE' });
+                                setIndications(p => p.filter(i => i.id !== ind.id));
+                              }} className="btn btn-sm btn-ghost" style={{ color: 'var(--danger)' }}><Trash2 size={14} /></button>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <select 
+                              value={ind.status} 
+                              onChange={async (e) => {
+                                const newStatus = e.target.value;
+                                await fetch('/api/indications/' + ind.id, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ id: ind.id, status: newStatus }),
+                                });
+                                setIndications(p => p.map(i => i.id === ind.id ? { ...i, status: newStatus } : i));
+                              }}
+                              className="input"
+                              style={{ fontSize: '0.8rem', padding: '6px 10px', width: 'auto' }}
+                            >
+                              <option value="pending">Aguardando</option>
+                              <option value="contacted">Contatado</option>
+                              <option value="converted">Convertido</option>
+                              <option value="rejected">Recusado</option>
+                            </select>
+                          </div>
+                          {ind.admin_notes && (
+                            <div style={{ marginTop: '12px', padding: '10px', background: 'rgba(238,189,43,0.1)', borderRadius: '8px', fontSize: '0.8rem', color: 'var(--gold)' }}>
+                              📝 Nota: {ind.admin_notes}
+                            </div>
+                          )}
+                          <div style={{ marginTop: '12px' }}>
+                            <input 
+                              className="input" 
+                              placeholder="Adicionar nota / pedir info..."
+                              onKeyDown={async (e) => {
+                                if (e.key === 'Enter') {
+                                  const notes = (e.target as HTMLInputElement).value;
+                                  await fetch('/api/indications/' + ind.id, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ id: ind.id, admin_notes: notes }),
+                                  });
+                                  setIndications(p => p.map(i => i.id === ind.id ? { ...i, admin_notes: notes } : i));
+                                  (e.target as HTMLInputElement).value = '';
+                                }
+                              }}
+                              style={{ fontSize: '0.8rem' }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

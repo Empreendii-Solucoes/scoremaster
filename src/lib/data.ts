@@ -114,7 +114,7 @@ export async function saveUsers(users: User[]): Promise<void> {
 
 // ============ APP STATE ============
 
-async function loadState<T>(key: string, defaultVal: T): Promise<T> {
+export async function loadState<T>(key: string, defaultVal: T): Promise<T> {
   const { data, error } = await supabase
     .from('app_state')
     .select('data')
@@ -124,7 +124,7 @@ async function loadState<T>(key: string, defaultVal: T): Promise<T> {
   return data.data as T;
 }
 
-async function saveState<T>(key: string, data: T): Promise<void> {
+export async function saveState<T>(key: string, data: T): Promise<void> {
   await supabase.from('app_state').upsert({ key, data }, { onConflict: 'key' });
 }
 

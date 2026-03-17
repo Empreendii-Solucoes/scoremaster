@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   BarChart2, DollarSign, CreditCard, User, Settings, LogOut,
-  TrendingUp, Menu, X,
+  TrendingUp, Menu, X, UserPlus,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -37,6 +37,7 @@ export default function Sidebar() {
     { label: 'Dashboard', icon: BarChart2, href: '/dashboard' },
     { label: 'Financeiro', icon: DollarSign, href: '/financial' },
     { label: 'Cartões', icon: CreditCard, href: '/services' },
+    { label: 'Indicações', icon: UserPlus, href: '/indications' },
     { label: 'Meu Perfil', icon: User, href: '/profile' },
     ...(user.isAdmin ? [{ label: 'Admin', icon: Settings, href: '/admin' }] : []),
   ];

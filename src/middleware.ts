@@ -76,7 +76,8 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/dashboard') || pathname.startsWith('/admin') ||
       pathname.startsWith('/profile') || pathname.startsWith('/financial') ||
       pathname.startsWith('/services') || pathname.startsWith('/onboarding') ||
-      pathname.startsWith('/health-quiz') || pathname.startsWith('/theme-select')) {
+      pathname.startsWith('/health-quiz') || pathname.startsWith('/theme-select') ||
+      pathname.startsWith('/indications') || pathname.startsWith('/reset-password')) {
     const token = request.cookies.get('sm_token')?.value;
     if (!token) {
       return NextResponse.redirect(new URL('/login', request.url));
