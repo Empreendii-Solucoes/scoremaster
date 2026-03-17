@@ -85,6 +85,20 @@ export default function LoginPage() {
     return digit1 === parseInt(clean[10]);
   };
 
+  const validatePhone = (phone: string): boolean => {
+    const numbers = phone.replace(/\D/g, '');
+    return numbers.length >= 10 && numbers.length <= 11 && numbers.startsWith('0') === false;
+  };
+
+  const formatPhone = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 3) return `(${numbers.slice(0,2)}) ${numbers.slice(2)}`;
+    if (numbers.length <= 7) return `(${numbers.slice(0,2)}) ${numbers.slice(2,3)} ${numbers.slice(3)}`;
+    if (numbers.length <= 8) return `(${numbers.slice(0,2)}) ${numbers.slice(2,3)} ${numbers.slice(3)}`;
+    return `(${numbers.slice(0,2)}) ${numbers.slice(2,3)} ${numbers.slice(3,7)}-${numbers.slice(7,11)}`;
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -102,6 +116,12 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
+    }
+
+    if (regData.phone && !validatePhone(regData.phone)) {
+      setError('Telefone inválido. Use formato (XX) XXXXX-XXXX com DDD válido.');
+      setLoading(false);
+      return;
     }
 
     const result = await register({
@@ -249,8 +269,8 @@ export default function LoginPage() {
                 </div>
                 <div className="input-group">
                   <label className="input-label">Celular</label>
-                  <input className="input" placeholder="11 9XXXX-XXXX" value={regData.phone}
-                    onChange={e => setRegData(p => ({ ...p, phone: e.target.value }))} />
+                  <input className="input" placeholder="(11) 99999-9999" value={regData.phone}
+                    onChange={e => setRegData(p => ({ ...p, phone: formatPhone(e.target.value) }))} />
                 </div>
               </div>
               <div className="input-group">

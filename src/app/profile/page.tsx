@@ -109,6 +109,20 @@ export default function ProfilePage() {
     return digit1 === parseInt(clean[10]);
   };
 
+  const validatePhone = (phone: string): boolean => {
+    const numbers = phone.replace(/\D/g, '');
+    return numbers.length >= 10 && numbers.length <= 11 && numbers.startsWith('0') === false;
+  };
+
+  const formatPhone = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 3) return `(${numbers.slice(0,2)}) ${numbers.slice(2)}`;
+    if (numbers.length <= 7) return `(${numbers.slice(0,2)}) ${numbers.slice(2,3)} ${numbers.slice(3)}`;
+    if (numbers.length <= 8) return `(${numbers.slice(0,2)}) ${numbers.slice(2,3)} ${numbers.slice(3)}`;
+    return `(${numbers.slice(0,2)}) ${numbers.slice(2,3)} ${numbers.slice(3,7)}-${numbers.slice(7,11)}`;
+  };
+
   const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
 
   const save = async () => {
@@ -117,6 +131,12 @@ export default function ProfilePage() {
 
     if (form.email && !validateEmail(form.email)) {
       setProfileErrors({ email: 'Email inválido. Verifique e tente novamente.' });
+      setTab('personal');
+      return;
+    }
+
+    if (form.phone && !validatePhone(form.phone)) {
+      setProfileErrors({ phone: 'Telefone inválido. Use formato (XX) XXXXX-XXXX com DDD válido.' });
       setTab('personal');
       return;
     }
@@ -160,6 +180,14 @@ export default function ProfilePage() {
       <label className="input-label">{label}</label>
       <input className="input" placeholder={placeholder} value={form[field]}
         onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))} />
+    </div>
+  );
+
+  const inpPhone = (label: string, field: keyof typeof form, placeholder = '') => (
+    <div className="input-group">
+      <label className="input-label">{label}</label>
+      <input className="input" placeholder={placeholder} value={form[field]}
+        onChange={e => setForm(p => ({ ...p, [field]: formatPhone(e.target.value) }))} />
     </div>
   );
 
@@ -215,7 +243,7 @@ export default function ProfilePage() {
               {inp('Nome Completo', 'name', 'Seu nome completo')}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 {inp('E-mail', 'email', 'email@exemplo.com')}
-                {inp('Celular', 'phone', '(11) 9XXXX-XXXX')}
+                {inpPhone('Celular', 'phone', '(11) 9XXXX-XXXX')}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 {inp('Ocupação / Profissão', 'occupation', 'Ex: Empresário')}

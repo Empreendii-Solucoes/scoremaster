@@ -32,9 +32,41 @@ export default function IndicationsPage() {
     }
   };
 
+  const formatPhone = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 3) return `(${numbers.slice(0,2)}) ${numbers.slice(2)}`;
+    if (numbers.length <= 7) return `(${numbers.slice(0,2)}) ${numbers.slice(2,3)} ${numbers.slice(3)}`;
+    if (numbers.length <= 8) return `(${numbers.slice(0,2)}) ${numbers.slice(2,3)} ${numbers.slice(3)}`;
+    return `(${numbers.slice(0,2)}) ${numbers.slice(2,3)} ${numbers.slice(3,7)}-${numbers.slice(7,11)}`;
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const numbers = phone.replace(/\D/g, '');
+    return numbers.length >= 10 && numbers.length <= 11 && numbers.startsWith('0') === false;
+  };
+
+  const [phoneError, setPhoneError] = useState('');
+
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhone(value);
+    setForm(p => ({ ...p, phone: formatted }));
+    if (value && !validatePhone(value)) {
+      setPhoneError('Telefone inválido. Use formato (XX) XXXXX-XXXX');
+    } else {
+      setPhoneError('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.phone.trim()) return;
+    
+    const cleanPhone = form.phone.replace(/\D/g, '');
+    if (!validatePhone(form.phone)) {
+      setPhoneError('Telefone inválido. Use formato (XX) XXXXX-XXXX');
+      return;
+    }
     
     setLoading(true);
     try {
@@ -107,7 +139,8 @@ export default function IndicationsPage() {
               <div className="input-group">
                 <label className="input-label">Telefone do Indicado</label>
                 <input className="input" placeholder="(11) 99999-9999" value={form.phone}
-                  onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} required />
+                  onChange={e => handlePhoneChange(e.target.value)} required />
+                {phoneError && <span style={{ color: 'var(--danger)', fontSize: '0.75rem' }}>{phoneError}</span>}
               </div>
               <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ gap: '8px' }}>
                 {loading ? <><Loader2 size={18} className="animate-spin" /> Enviando...</> : <><Send size={18} /> Enviar Indicação</>}
