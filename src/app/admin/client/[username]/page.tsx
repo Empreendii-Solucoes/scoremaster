@@ -399,6 +399,9 @@ export default function AdminClientView() {
                       const TaskIcon = icons[task.type] || Zap;
                       const taskUpload = uploads[task.id];
 
+                      const taskProgress = progress[task.id];
+                      const checklistItems = taskProgress?.checklist_items;
+
                       return (
                         <div key={task.id} style={{
                           border: `1px solid ${isDone ? 'rgba(34,197,94,0.2)' : 'var(--border)'}`,
@@ -422,6 +425,88 @@ export default function AdminClientView() {
                               </div>
                               <p style={{ color: 'var(--text-sec)', fontSize: '0.8rem' }}>{task.description}</p>
 
+                              {/* Timestamp de conclusão */}
+                              {isDone && taskProgress?.timestamp && (
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+                                  Concluído em: {new Date(taskProgress.timestamp).toLocaleString('pt-BR')}
+                                </div>
+                              )}
+
+                              {/* === RESPOSTAS DO CHECKLIST === */}
+                              {isDone && task.type === 'checklist' && task.items && (
+                                <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(34,197,94,0.06)', borderRadius: '8px', border: '1px solid rgba(34,197,94,0.15)' }}>
+                                  <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>Itens marcados pelo cliente:</div>
+                                  {task.items.map((item, i) => {
+                                    const checked = checklistItems ? checklistItems[item] : true;
+                                    return (
+                                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '3px 0' }}>
+                                        {checked ? <CheckCircle size={13} color="var(--success)" /> : <XCircle size={13} color="var(--text-muted)" />}
+                                        <span style={{ fontSize: '0.8rem', color: checked ? 'var(--text-main)' : 'var(--text-muted)', textDecoration: checked ? 'none' : 'line-through' }}>{item}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+
+                              {/* === RESPOSTAS DO HEALTH QUIZ === */}
+                              {isDone && task.type === 'health_quiz' && client.credit_health?.initial_data && (
+                                <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(238,189,43,0.06)', borderRadius: '8px', border: '1px solid rgba(238,189,43,0.15)' }}>
+                                  <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '8px' }}>Respostas do questionário:</div>
+                                  {[
+                                    { label: 'Sabe o Score no Serasa/SPC?', value: client.credit_health.initial_data.has_positive_score, format: (v: boolean | undefined) => v ? 'Sim' : 'Não' },
+                                    { label: 'Contas bancárias ativas', value: client.credit_health.initial_data.bank_accounts_range, format: (v: string | undefined) => v === '0' ? 'Nenhuma' : v === '1' ? '1 conta' : v === '2-3' ? '2-3 contas' : v === '4+' ? '4 ou mais' : v || '—' },
+                                    { label: 'Débito automático?', value: client.credit_health.initial_data.has_auto_debit, format: (v: boolean | undefined) => v ? 'Sim' : 'Não' },
+                                    { label: 'Possui investimentos?', value: client.credit_health.initial_data.has_investments, format: (v: boolean | undefined) => v ? 'Sim' : 'Não' },
+                                    { label: 'Possui seguro?', value: client.credit_health.initial_data.has_insurance, format: (v: boolean | undefined) => v ? 'Sim' : 'Não' },
+                                  ].map((q, i) => (
+                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                                      <span style={{ fontSize: '0.78rem', color: 'var(--text-sec)' }}>{q.label}</span>
+                                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)' }}>{q.format(q.value as never)}</span>
+                                    </div>
+                                  ))}
+                                  {client.credit_health.score > 0 && (
+                                    <div style={{ marginTop: '8px', padding: '6px 10px', borderRadius: '8px', background: `${client.credit_health.level_color || 'var(--gold)'}15`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: client.credit_health.level_color || 'var(--gold)' }}>Score de Saúde: {client.credit_health.score}</span>
+                                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Nível: {client.credit_health.level}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* === DADOS DO FORMULÁRIO (perfil preenchido) === */}
+                              {isDone && task.type === 'form' && (
+                                <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(59,130,246,0.06)', borderRadius: '8px', border: '1px solid rgba(59,130,246,0.15)' }}>
+                                  <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>Dados preenchidos no perfil:</div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px 16px' }}>
+                                    {[
+                                      { label: 'Nome', value: client.name },
+                                      { label: 'Email', value: client.email },
+                                      { label: 'Telefone', value: client.phone },
+                                      { label: 'CPF', value: profile?.cpf },
+                                      { label: 'CNPJ', value: client.profiles?.PJ?.cnpj },
+                                      { label: 'Ocupação', value: client.occupation },
+                                      { label: 'Nome da Mãe', value: client.mother_name },
+                                      { label: 'CEP', value: client.address_cep },
+                                      { label: 'Endereço', value: [client.address_street, client.address_number].filter(Boolean).join(', ') || undefined },
+                                      { label: 'Bairro', value: client.address_neighborhood },
+                                      { label: 'Cidade/UF', value: [client.address_city, client.address_state].filter(Boolean).join('/') || undefined },
+                                    ].filter(f => f.value).map((f, i) => (
+                                      <div key={i} style={{ padding: '3px 0' }}>
+                                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{f.label}: </span>
+                                        <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)' }}>{f.value}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* === VIDEO/VIDEO_ACTION — qual ação o cliente escolheu === */}
+                              {isDone && task.type === 'video_action' && task.actions && (
+                                <div style={{ marginTop: '8px', fontSize: '0.78rem', color: 'var(--text-sec)' }}>
+                                  Ação disponível: {task.actions.join(' / ')} — <span style={{ color: 'var(--success)', fontWeight: 600 }}>Completou</span>
+                                </div>
+                              )}
+
                               {/* Exibe arquivo enviado (Serasa ou outro upload) */}
                               {(task.type === 'upload' || task.id === 'task_serasa_upload') && (
                                 <div style={{ marginTop: '10px' }}>
@@ -433,6 +518,15 @@ export default function AdminClientView() {
                                   ) : (
                                     <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>Nenhum arquivo enviado ainda</span>
                                   )}
+                                  {/* Info do upload */}
+                                  {(taskUpload || uploads['serasa']) && (() => {
+                                    const up = taskUpload || uploads['serasa'];
+                                    return (
+                                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                        {up.originalName} • {(up.size / 1024).toFixed(0)} KB • Enviado em {new Date(up.uploadedAt).toLocaleString('pt-BR')}
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               )}
                             </div>
