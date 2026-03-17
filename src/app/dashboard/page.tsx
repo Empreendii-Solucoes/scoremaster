@@ -251,6 +251,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [expandedUserTask, setExpandedUserTask] = useState<string | null>(null);
   const [users, setUsers] = useState<Omit<import('@/lib/types').User, 'password'>[]>([]);
+  const [whatsappNumber, setWhatsappNumber] = useState<string>('');
 
   const fetchData = useCallback(async () => {
     const promises: Promise<Response>[] = [fetch('/api/content'), fetch('/api/badges')];
@@ -260,6 +261,9 @@ export default function Dashboard() {
     if (contentRes?.ok) {
       const c = await contentRes.json();
       setStages(c.stages || []);
+      if (c.settings?.whatsapp_number) {
+        setWhatsappNumber(c.settings.whatsapp_number);
+      }
     }
     if (badgesRes?.ok) setBadges(await badgesRes.json());
     if (usersRes?.ok) {
@@ -438,7 +442,7 @@ export default function Dashboard() {
                     <CreditCard size={16} /> Ver Cartões
                   </button>
                 ) : task.id === 'task_mentoria' ? (
-                  <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5500000000000'}?text=Quero saber sobre a mentoria`} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ gap: '8px', textDecoration: 'none' }}>
+                  <a href={`https://wa.me/${whatsappNumber || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5500000000000'}?text=Quero saber sobre a mentoria`} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ gap: '8px', textDecoration: 'none' }}>
                     Contatar via WhatsApp
                   </a>
                 ) : (

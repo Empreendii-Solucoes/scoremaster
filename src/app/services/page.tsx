@@ -11,11 +11,20 @@ export default function ServicesPage() {
   const { user, theme } = useAuth();
   const router = useRouter();
   const [services, setServices] = useState<ServicesData | null>(null);
+  const [whatsappNumber, setWhatsappNumber] = useState<string>('');
   const [selectedValue, setSelectedValue] = useState<number>(0);
 
   useEffect(() => {
     if (!user) { router.replace('/login'); return; }
-    fetch('/api/services').then(r => r.json()).then(setServices);
+    Promise.all([
+      fetch('/api/services').then(r => r.json()),
+      fetch('/api/content').then(r => r.json())
+    ]).then(([servicesData, contentData]) => {
+      setServices(servicesData);
+      if (contentData.settings?.whatsapp_number) {
+        setWhatsappNumber(contentData.settings.whatsapp_number);
+      }
+    });
   }, [user, router]);
 
   if (!user || !services) return (
@@ -42,7 +51,7 @@ export default function ServicesPage() {
 
   const whatsappLink = (card: CCType) => {
     const msg = `Olá! Sou ${user.name} e gostaria de adquirir: ${card.title}${selectedValue ? ` - Limite: R$ ${selectedValue.toLocaleString('pt-BR')}` : ''}.`;
-    const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5500000000000';
+    const phone = whatsappNumber || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5500000000000';
     return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
   };
 
@@ -180,7 +189,7 @@ export default function ServicesPage() {
                         </div>
                       </div>
                       <p style={{ color: 'var(--text-sec)', fontSize: '0.8rem', lineHeight: 1.5, marginBottom: '16px', flex: 1 }}>{s.description}</p>
-                      <a href={s.link || `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5500000000000'}?text=${encodeURIComponent(`Olá! Tenho interesse no serviço: ${s.title}`)}`}
+                      <a href={s.link || `https://wa.me/${whatsappNumber || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5500000000000'}?text=${encodeURIComponent(`Olá! Tenho interesse no serviço: ${s.title}`)}`}
                         target="_blank" rel="noopener noreferrer" className="btn btn-sm"
                         style={{ width: '100%', justifyContent: 'center', gap: '8px', background: 'var(--bg-input)', color: 'var(--text-main)', borderColor: 'var(--border)' }}>
                         <MessageCircle size={14} /> Solicitar Agora
