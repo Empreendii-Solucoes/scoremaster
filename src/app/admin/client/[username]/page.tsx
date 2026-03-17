@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import {
   ArrowLeft, TrendingUp, BarChart2, User, DollarSign, CreditCard,
   CheckCircle, Lock, Clock, Play, Zap, ChevronDown, ChevronUp,
-  Award, Eye, FileText, MessageCircle,
+  Award, Eye, FileText, MessageCircle, Trash2, RotateCcw, XCircle,
 } from 'lucide-react';
 import { User as UserType, Stage, BadgesData, ProfileType } from '@/lib/types';
 import { calculateProgress, getUnlockedStages, getProgressMessage } from '@/lib/scoring';
@@ -39,6 +39,7 @@ export default function AdminClientView() {
   const [profileType, setProfileType] = useState<ProfileType>('PF');
   const [activeStage, setActiveStage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [clientRes, contentRes, badgesRes] = await Promise.all([
@@ -59,6 +60,56 @@ export default function AdminClientView() {
     if (badgesRes.ok) setBadges(await badgesRes.json());
     setLoading(false);
   }, [username]);
+
+  const saveClient = async (updates: Record<string, unknown>) => {
+    setSaving(true);
+    await fetch(`/api/users/${username}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updates) });
+    await fetchData();
+    setSaving(false);
+  };
+
+  const toggleTaskDone = async (taskId: string) => {
+    if (!client) return;
+    const currentProgress = client.progress || {};
+    const isDone = currentProgress[taskId]?.done;
+    const updatedProgress = { ...currentProgress };
+    if (isDone) {
+      delete updatedProgress[taskId];
+    } else {
+      updatedProgress[taskId] = { done: true, timestamp: Date.now() };
+    }
+    await saveClient({ progress: updatedProgress });
+  };
+
+  const toggleUserTaskDone = async (taskId: string) => {
+    if (!client) return;
+    const updatedTasks = (client.user_tasks || []).map(t =>
+      t.id === taskId ? { ...t, done: !t.done, done_at: !t.done ? new Date().toISOString() : undefined } : t
+    );
+    await saveClient({ user_tasks: updatedTasks });
+  };
+
+  const deleteUserTask = async (taskId: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta tarefa personalizada?')) return;
+    if (!client) return;
+    const updatedTasks = (client.user_tasks || []).filter(t => t.id !== taskId);
+    await saveClient({ user_tasks: updatedTasks });
+  };
+
+  const markFinancialItemPaid = async (itemId: string) => {
+    if (!client) return;
+    const updated = (client.financial_items || []).map(i =>
+      i.id === itemId ? { ...i, status: 'paid' as const, paid_at: new Date().toISOString() } : i
+    );
+    await saveClient({ financial_items: updated });
+  };
+
+  const deleteFinancialItem = async (itemId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este lançamento financeiro?')) return;
+    if (!client) return;
+    const updatedItems = (client.financial_items || []).filter(i => i.id !== itemId);
+    await saveClient({ financial_items: updatedItems });
+  };
 
   useEffect(() => {
     if (!adminUser?.isAdmin) { router.replace('/login'); return; }
@@ -245,7 +296,30 @@ export default function AdminClientView() {
                       {task.link_label || 'Acessar'}
                     </a>
                   )}
-                  {task.done && <span style={{ fontSize: '0.7rem', color: 'var(--success)' }}>✓ Concluído</span>}
+                  <button
+                    onClick={() => toggleUserTaskDone(task.id)}
+                    disabled={saving}
+                    className="btn btn-sm"
+                    style={{
+                      padding: '6px 12px', fontSize: '0.72rem', gap: '4px',
+                      borderColor: task.done ? 'var(--warning)' : 'var(--success)',
+                      color: task.done ? 'var(--warning)' : 'var(--success)',
+                      opacity: saving ? 0.5 : 1,
+                    }}>
+                    {task.done ? <><RotateCcw size={12} /> Desfazer</> : <><CheckCircle size={12} /> Concluir</>}
+                  </button>
+                  <button
+                    onClick={() => deleteUserTask(task.id)}
+                    disabled={saving}
+                    title="Excluir tarefa"
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                      display: 'flex', alignItems: 'center', color: 'var(--danger)', opacity: saving ? 0.3 : 0.6,
+                    }}
+                    onMouseEnter={e => { if (!saving) e.currentTarget.style.opacity = '1'; }}
+                    onMouseLeave={e => { e.currentTarget.style.opacity = saving ? '0.3' : '0.6'; }}>
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -362,6 +436,18 @@ export default function AdminClientView() {
                                 </div>
                               )}
                             </div>
+                            <button
+                              onClick={() => toggleTaskDone(task.id)}
+                              disabled={saving}
+                              className="btn btn-sm"
+                              style={{
+                                padding: '6px 12px', fontSize: '0.72rem', gap: '4px', flexShrink: 0,
+                                borderColor: isDone ? 'var(--warning)' : 'var(--success)',
+                                color: isDone ? 'var(--warning)' : 'var(--success)',
+                                opacity: saving ? 0.5 : 1,
+                              }}>
+                              {isDone ? <><RotateCcw size={12} /> Desfazer</> : <><CheckCircle size={12} /> Marcar Concluído</>}
+                            </button>
                           </div>
                         </div>
                       );
@@ -393,11 +479,81 @@ export default function AdminClientView() {
                   <span style={{ padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 600, background: `${sc[item.status]}18`, color: sc[item.status] }}>
                     {sl[item.status]}
                   </span>
+                  {item.status !== 'paid' && (
+                    <button
+                      onClick={() => markFinancialItemPaid(item.id)}
+                      disabled={saving}
+                      className="btn btn-sm"
+                      style={{ padding: '4px 10px', fontSize: '0.68rem', borderColor: 'var(--success)', color: 'var(--success)', gap: '4px', opacity: saving ? 0.5 : 1 }}>
+                      <CheckCircle size={11} /> Marcar Pago
+                    </button>
+                  )}
+                  <button
+                    onClick={() => deleteFinancialItem(item.id)}
+                    disabled={saving}
+                    title="Excluir lançamento"
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                      display: 'flex', alignItems: 'center', color: 'var(--danger)', opacity: saving ? 0.3 : 0.6,
+                    }}
+                    onMouseEnter={e => { if (!saving) e.currentTarget.style.opacity = '1'; }}
+                    onMouseLeave={e => { e.currentTarget.style.opacity = saving ? '0.3' : '0.6'; }}>
+                    <Trash2 size={13} />
+                  </button>
                 </div>
               );
             })}
           </div>
         )}
+
+        {/* Dados Cadastrais */}
+        <div className="card" style={{ marginTop: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <User size={18} color="var(--gold)" />
+            <h3 style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '0.95rem' }}>Dados Cadastrais</h3>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            {[
+              { label: 'Nome', value: client.name },
+              { label: 'Email', value: client.email },
+              { label: 'Telefone', value: client.phone },
+              { label: 'Usuário', value: client.username },
+              { label: 'Ocupação', value: client.occupation },
+              { label: 'Nome da Mãe', value: client.mother_name },
+              { label: 'CPF', value: profile?.cpf },
+              { label: 'CNPJ', value: client.profiles?.PJ?.cnpj },
+              { label: 'Score Serasa', value: profile?.score ? String(profile.score) : undefined },
+              { label: 'CEP', value: client.address_cep },
+              { label: 'Rua', value: client.address_street },
+              { label: 'Número', value: client.address_number },
+              { label: 'Complemento', value: client.address_complement },
+              { label: 'Bairro', value: client.address_neighborhood },
+              { label: 'Cidade', value: client.address_city },
+              { label: 'Estado', value: client.address_state },
+            ].filter(f => f.value).map(field => (
+              <div key={field.label} style={{ padding: '10px 14px', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>{field.label}</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>{field.value}</div>
+              </div>
+            ))}
+          </div>
+          {/* Dívidas */}
+          {profile?.debts && profile.debts.length > 0 && (
+            <div style={{ marginTop: '16px' }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '8px' }}>Dívidas Registradas</div>
+              {profile.debts.map((debt, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px',
+                  background: 'var(--bg-input)', borderRadius: '8px', marginBottom: '6px', border: '1px solid var(--border)',
+                }}>
+                  <div style={{ flex: 1, fontSize: '0.82rem', color: 'var(--text-main)' }}>{debt.creditor}</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--danger)' }}>R$ {debt.amount.toFixed(2)}</div>
+                  {debt.status && <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{debt.status}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Contato rápido */}
         <div className="card" style={{ marginTop: '24px', background: 'var(--gold-bg)', borderColor: 'rgba(238,189,43,0.2)' }}>
