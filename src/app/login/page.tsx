@@ -17,12 +17,19 @@ export default function LoginPage() {
 
   // Login form
   const [loginData, setLoginData] = useState({ username: '', password: '' });
-  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return (window as any).ENV?.NEXT_PUBLIC_WHATSAPP_NUMBER || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
+    }
+    return '';
+  });
 
   useEffect(() => {
     fetch('/api/content').then(r => r.json()).then(c => {
-      if (c.settings?.whatsapp_number) setWhatsappNumber(c.settings.whatsapp_number);
-    });
+      if (c.settings?.whatsapp_number) {
+        setWhatsappNumber(c.settings.whatsapp_number);
+      }
+    }).catch(() => {});
   }, []);
 
   // Register form
@@ -312,8 +319,18 @@ export default function LoginPage() {
                       onChange={e => setForgotEmail(e.target.value)} />
                   </div>
                   {forgotMsg && (
-                    <div className="alert alert-danger" style={{ fontSize: '0.8rem' }}>
-                      {forgotMsg}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div className="alert alert-danger" style={{ fontSize: '0.8rem', margin: 0 }}>
+                        {forgotMsg}
+                      </div>
+                      {whatsappNumber && (
+                        <a href={`https://wa.me/${whatsappNumber}?text=Olá! Estou com problema para recuperar minha senha.`} 
+                          target="_blank" rel="noopener noreferrer"
+                          className="btn btn-full"
+                          style={{ gap: '8px', background: '#25D366', color: '#fff', border: 'none', justifyContent: 'center', fontSize: '0.9rem', padding: '12px' }}>
+                          💬 Falar com Suporte
+                        </a>
+                      )}
                     </div>
                   )}
                   <button
