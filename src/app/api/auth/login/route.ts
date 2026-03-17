@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findUser, loadUsers, updateUser } from '@/lib/data';
+import { loadUsers, updateUser } from '@/lib/data';
 import { signToken } from '@/lib/auth';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import bcrypt from 'bcryptjs';
