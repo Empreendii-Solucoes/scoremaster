@@ -1190,8 +1190,12 @@ export default function AdminPage() {
                               <button onClick={() => setEditingIndication(ind)} className="btn btn-sm btn-ghost"><Edit2 size={14} /></button>
                               <button onClick={async () => {
                                 if (!confirm('Excluir indicação?')) return;
-                                await fetch(`/api/indications?id=${ind.id}`, { method: 'DELETE' });
-                                setIndications(p => p.filter(i => i.id !== ind.id));
+                                const res = await fetch(`/api/indications/${ind.id}`, { method: 'DELETE' });
+                                if (res.ok) {
+                                  setIndications(p => p.filter(i => i.id !== ind.id));
+                                } else {
+                                  alert('Erro ao excluir indicação');
+                                }
                               }} className="btn btn-sm btn-ghost" style={{ color: 'var(--danger)' }}><Trash2 size={14} /></button>
                             </div>
                           </div>
