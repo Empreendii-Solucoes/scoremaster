@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, ShieldCheck, TrendingUp, Loader2 } from 'lucide-react';
@@ -17,6 +17,13 @@ export default function LoginPage() {
 
   // Login form
   const [loginData, setLoginData] = useState({ username: '', password: '' });
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+
+  useEffect(() => {
+    fetch('/api/content').then(r => r.json()).then(c => {
+      if (c.settings?.whatsapp_number) setWhatsappNumber(c.settings.whatsapp_number);
+    });
+  }, []);
 
   // Register form
   const [regData, setRegData] = useState({
@@ -25,7 +32,7 @@ export default function LoginPage() {
   });
 
   // Forgot
-  const [forgotUser, setForgotUser] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('');
   const [forgotStep, setForgotStep] = useState<'form' | 'sent'>('form');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotMsg, setForgotMsg] = useState('');
@@ -41,6 +48,7 @@ export default function LoginPage() {
     const stored = localStorage.getItem('sm_user');
     if (stored) {
       const user = JSON.parse(stored);
+      if (user.password_reset_required) { router.push('/reset-password'); return; }
       if (!user.onboarding_completed) { router.push('/onboarding'); return; }
       if (!user.credit_health_completed) { router.push('/health-quiz'); return; }
       const hasTheme = localStorage.getItem('sm_theme');
@@ -148,8 +156,8 @@ export default function LoginPage() {
           {view === 'login' && (
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="input-group">
-                <label className="input-label">Usuário</label>
-                <input className="input" placeholder="Seu usuário" value={loginData.username}
+                <label className="input-label">Email ou Usuário</label>
+                <input className="input" placeholder="seu@email.com ou usuário" value={loginData.username}
                   onChange={e => setLoginData(p => ({ ...p, username: e.target.value }))} required />
               </div>
               <div className="input-group">
@@ -260,12 +268,12 @@ export default function LoginPage() {
               {forgotStep === 'form' && (
                 <>
                   <p style={{ color: 'var(--text-sec)', fontSize: '0.875rem', lineHeight: 1.6 }}>
-                    Informe seu nome de usuário e enviaremos uma nova senha provisória para o email cadastrado.
+                    Informe seu email cadastrado e enviaremos uma nova senha provisória.
                   </p>
                   <div className="input-group">
-                    <label className="input-label">Seu Usuário</label>
-                    <input className="input" placeholder="Seu usuário" value={forgotUser}
-                      onChange={e => setForgotUser(e.target.value)} />
+                    <label className="input-label">Seu Email</label>
+                    <input className="input" type="email" placeholder="seu@email.com" value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)} />
                   </div>
                   {forgotMsg && (
                     <div className="alert alert-danger" style={{ fontSize: '0.8rem' }}>
@@ -274,14 +282,14 @@ export default function LoginPage() {
                   )}
                   <button
                     onClick={async () => {
-                      if (!forgotUser.trim()) { setForgotMsg('Informe seu usuário.'); return; }
+                      if (!forgotEmail.trim()) { setForgotMsg('Informe seu email.'); return; }
                       setForgotLoading(true);
                       setForgotMsg('');
                       try {
                         const res = await fetch('/api/auth/forgot-password', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ username: forgotUser.trim() }),
+                          body: JSON.stringify({ email: forgotEmail.trim() }),
                         });
                         const data = await res.json();
                         if (!res.ok) { setForgotMsg(data.error || 'Erro ao processar. Tente novamente.'); }
@@ -294,21 +302,29 @@ export default function LoginPage() {
                     style={{ gap: '8px' }}>
                     {forgotLoading ? <><Loader2 size={18} className="animate-spin" /> Enviando...</> : '📧 Enviar Nova Senha por Email'}
                   </button>
+                  {whatsappNumber && (
+                    <a href={`https://wa.me/${whatsappNumber}?text=Olá! Preciso de ajuda para recuperar minha senha.`} 
+                      target="_blank" rel="noopener noreferrer"
+                      className="btn btn-full"
+                      style={{ gap: '8px', background: '#25D366', color: '#fff', border: 'none', justifyContent: 'center' }}>
+                      💬 Precisa de ajuda? Fale conosco
+                    </a>
+                  )}
                 </>
               )}
               {forgotStep === 'sent' && (
                 <>
                   <div className="alert alert-success" style={{ fontSize: '0.85rem' }}>
-                    ✅ Se o usuário existir e tiver um email cadastrado, uma nova senha provisória foi enviada. Verifique sua caixa de entrada e spam.
+                    ✅ Se existir uma conta com este email, uma nova senha provisória foi enviada. Verifique sua caixa de entrada e spam.
                   </div>
-                  <button onClick={() => { setView('login'); setForgotStep('form'); setForgotUser(''); setForgotMsg(''); setError(''); }}
+                  <button onClick={() => { setView('login'); setForgotStep('form'); setForgotEmail(''); setForgotMsg(''); setError(''); }}
                     className="btn btn-primary btn-full btn-lg">
                     Voltar ao Login
                   </button>
                 </>
               )}
               {forgotStep === 'form' && (
-                <button onClick={() => { setView('login'); setForgotStep('form'); setForgotUser(''); setForgotMsg(''); setError(''); }}
+                <button onClick={() => { setView('login'); setForgotStep('form'); setForgotEmail(''); setForgotMsg(''); setError(''); }}
                   className="btn btn-ghost btn-full">← Voltar ao Login</button>
               )}
             </div>

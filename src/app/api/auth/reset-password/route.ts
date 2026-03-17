@@ -3,36 +3,34 @@ import { findUser, updateUser } from '@/lib/data';
 import { verifyToken } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
 
-/**
- * POST /api/auth/reset-password
- * Apenas admins podem redefinir a senha de um usuário.
- * Body: { username: string, newPassword: string }
- */
 export async function POST(request: NextRequest) {
   const token = request.cookies.get('sm_token')?.value;
   const payload = token ? await verifyToken(token) : null;
 
-  if (!payload?.isAdmin) {
-    return NextResponse.json({ error: 'Apenas administradores podem redefinir senhas.' }, { status: 403 });
+  if (!payload?.username) {
+    return NextResponse.json({ error: 'Usuário não autenticado.' }, { status: 401 });
   }
 
-  const { username, newPassword } = await request.json();
+  const { password } = await request.json();
 
-  if (!username || !newPassword) {
-    return NextResponse.json({ error: 'Usuário e nova senha são obrigatórios.' }, { status: 400 });
+  if (!password) {
+    return NextResponse.json({ error: 'Nova senha é obrigatória.' }, { status: 400 });
   }
 
-  if (newPassword.length < 6) {
+  if (password.length < 6) {
     return NextResponse.json({ error: 'A senha deve ter pelo menos 6 caracteres.' }, { status: 400 });
   }
 
-  const user = await findUser(username);
+  const user = await findUser(payload.username);
   if (!user) {
     return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
   }
 
-  const hashedPassword = await bcrypt.hash(newPassword, 12);
-  await updateUser(username, { password: hashedPassword });
+  const hashedPassword = await bcrypt.hash(password, 12);
+  await updateUser(payload.username, { 
+    password: hashedPassword,
+    password_reset_required: false
+  });
 
-  return NextResponse.json({ success: true, message: `Senha de ${username} redefinida com sucesso.` });
+  return NextResponse.json({ success: true, message: 'Senha redefinida com sucesso.' });
 }

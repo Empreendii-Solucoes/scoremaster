@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findUser, updateUser } from '@/lib/data';
+import { findUser, loadUsers, updateUser } from '@/lib/data';
 import { signToken } from '@/lib/auth';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import bcrypt from 'bcryptjs';
@@ -18,13 +18,23 @@ export async function POST(request: NextRequest) {
 
     const { username, password } = await request.json();
 
-    if (!username || !password) {
-      return NextResponse.json({ error: 'Usuário e senha são obrigatórios.' }, { status: 400 });
+    if (!password) {
+      return NextResponse.json({ error: 'Senha é obrigatória.' }, { status: 400 });
     }
 
     let user;
+    let loginField = username;
+    
+    if (!username) {
+      return NextResponse.json({ error: 'Email ou usuário é obrigatório.' }, { status: 400 });
+    }
+
     try {
-      user = await findUser(username);
+      const allUsers = await loadUsers();
+      user = allUsers.find((u: any) => 
+        u.username === username || 
+        (u.email && u.email.toLowerCase() === username.toLowerCase())
+      );
     } catch (dbError) {
       console.error('[AUTH] Erro de banco ao buscar usuário:', dbError);
       return NextResponse.json(
@@ -35,8 +45,10 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       console.log('[AUTH] Usuário não encontrado:', username);
-      return NextResponse.json({ error: 'Usuário ou senha incorretos.' }, { status: 401 });
+      return NextResponse.json({ error: 'Email/usuário ou senha incorretos.' }, { status: 401 });
     }
+
+    loginField = user.username;
 
     // Migração transparente: senhas antigas estão em texto puro
     // Senhas com hash bcrypt começam com "$2a$" ou "$2b$"
@@ -56,15 +68,17 @@ export async function POST(request: NextRequest) {
 
     if (!passwordValid) {
       console.log('[AUTH] Senha incorreta para usuário:', username);
-      return NextResponse.json({ error: 'Usuário ou senha incorretos.' }, { status: 401 });
+      return NextResponse.json({ error: 'Email/usuário ou senha incorretos.' }, { status: 401 });
     }
+
+    const requiresPasswordReset = user.password_reset_required === true;
 
     const token = await signToken({ username: user.username, isAdmin: !!user.isAdmin });
 
     // Remove senha antes de enviar
     const { password: _pw, ...safeUser } = user;
 
-    const response = NextResponse.json({ user: safeUser, token });
+    const response = NextResponse.json({ user: safeUser, token, requiresPasswordReset });
     response.cookies.set('sm_token', token, {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7, // 7 dias

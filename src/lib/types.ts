@@ -124,6 +124,7 @@ export interface User {
   uploads?: Record<string, UploadedFile>;
   user_tasks?: UserTask[];
   _impersonated_by?: string;
+  password_reset_required?: boolean;
 }
 
 export interface Task {
