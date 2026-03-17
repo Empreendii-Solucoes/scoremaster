@@ -57,10 +57,46 @@ export default function LoginPage() {
     router.push('/dashboard');
   };
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateCPF = (cpf: string): boolean => {
+    const clean = cpf.replace(/\D/g, '');
+    if (clean.length !== 11) return false;
+    if (/^(\d)\1+$/.test(clean)) return false;
+    let sum = 0;
+    for (let i = 0; i < 9; i++) sum += parseInt(clean[i]) * (10 - i);
+    let digit1 = (sum * 10) % 11;
+    if (digit1 === 10) digit1 = 0;
+    if (digit1 !== parseInt(clean[9])) return false;
+    sum = 0;
+    for (let i = 0; i < 10; i++) sum += parseInt(clean[i]) * (11 - i);
+    digit1 = (sum * 10) % 11;
+    if (digit1 === 10) digit1 = 0;
+    return digit1 === parseInt(clean[10]);
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (!validateEmail(regData.email)) {
+      setError('Email inválido. Verifique e tente novamente.');
+      setLoading(false);
+      return;
+    }
+
+    if (regData.profile_choice !== 'PJ' && regData.cpf) {
+      if (!validateCPF(regData.cpf)) {
+        setError('CPF inválido. Verifique e tente novamente.');
+        setLoading(false);
+        return;
+      }
+    }
+
     const result = await register({
       ...regData,
       email: regData.email,
