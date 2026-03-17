@@ -53,6 +53,7 @@ export default function AdminPage() {
   const [showNewTaskForStage, setShowNewTaskForStage] = useState<string | null>(null);
   const [expandedStage, setExpandedStage] = useState<string | null>(null);
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({ whatsapp_number: '', mentoria_link: '', cartao_garantido_link: '' });
+  const [settingsSaved, setSettingsSaved] = useState(false);
 
   // Services State
   const [servicesData, setServicesData] = useState<import('@/lib/types').ServicesData | null>(null);
@@ -318,6 +319,8 @@ export default function AdminPage() {
   const saveGlobalSettings = async (updated: GlobalSettings) => {
     setGlobalSettings(updated);
     await fetch('/api/content', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stages, settings: updated }) });
+    setSettingsSaved(true);
+    setTimeout(() => setSettingsSaved(false), 3000);
   };
 
   const saveServices = async (updated: import('@/lib/types').ServicesData) => {
@@ -1180,6 +1183,11 @@ export default function AdminPage() {
                     <button className="btn btn-primary" onClick={() => saveGlobalSettings(globalSettings)} style={{ gap: '8px', alignSelf: 'flex-start' }}>
                       <Save size={16} /> Salvar Configurações
                     </button>
+                    {settingsSaved && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--success)', fontSize: '0.9rem', marginTop: '8px' }}>
+                        <CheckCircle size={16} /> Configurações salvas com sucesso!
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
