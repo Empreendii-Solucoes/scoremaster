@@ -8,7 +8,7 @@ import {
   CheckCircle, Lock, Clock, Play, Zap, ChevronDown, ChevronUp,
   Award, Eye, FileText, MessageCircle, Trash2, RotateCcw, XCircle,
 } from 'lucide-react';
-import { User as UserType, Stage, BadgesData, ProfileType } from '@/lib/types';
+import { User as UserType, Stage, BadgesData, ProfileType, GlobalSettings } from '@/lib/types';
 import { calculateProgress, getUnlockedStages, getProgressMessage } from '@/lib/scoring';
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -40,6 +40,7 @@ export default function AdminClientView() {
   const [activeStage, setActiveStage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
 
   const fetchData = useCallback(async () => {
     const [clientRes, contentRes, badgesRes] = await Promise.all([
@@ -56,6 +57,9 @@ export default function AdminClientView() {
     if (contentRes.ok) {
       const c = await contentRes.json();
       setStages(c.stages || []);
+      if (c.settings?.whatsapp_number && !whatsappNumber) {
+        setWhatsappNumber(c.settings.whatsapp_number);
+      }
     }
     if (badgesRes.ok) setBadges(await badgesRes.json());
     setLoading(false);
@@ -654,12 +658,53 @@ export default function AdminClientView() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>Contato com {client.name}</div>
-              <div style={{ color: 'var(--text-sec)', fontSize: '0.82rem' }}>{client.phone || 'Telefone não cadastrado'}</div>
+              <div style={{ color: 'var(--text-sec)', fontSize: '0.82rem' }}>Tel. do cliente: {client.phone || 'Não cadastrado'}</div>
             </div>
-            <a href={`https://wa.me/55${(client.phone || '').replace(/\D/g, '')}?text=Olá ${client.name}, aqui é a equipe Empreendii Soluções ScoreMaster!`}
-              target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ textDecoration: 'none', gap: '8px' }}>
-              <MessageCircle size={16} /> WhatsApp
-            </a>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <a href={`https://wa.me/55${(client.phone || '').replace(/\D/g, '')}?text=Olá ${client.name}, aqui é a equipe Empreendii Soluções ScoreMaster!`}
+                target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ textDecoration: 'none', gap: '8px' }}>
+                <MessageCircle size={16} /> WhatsApp Cliente
+              </a>
+            </div>
+          </div>
+
+          {/* Número de destino editável */}
+          <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid rgba(238,189,43,0.15)' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '8px' }}>Número de destino do WhatsApp (admin)</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                className="input"
+                placeholder="5511999999999"
+                value={whatsappNumber}
+                onChange={e => setWhatsappNumber(e.target.value)}
+                style={{ flex: 1, fontSize: '0.85rem', padding: '8px 12px' }}
+              />
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  const contentRes = await fetch('/api/content');
+                  if (contentRes.ok) {
+                    const content = await contentRes.json();
+                    const updatedSettings = { ...(content.settings || {}), whatsapp_number: whatsappNumber };
+                    await fetch('/api/content', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stages: content.stages, settings: updatedSettings }) });
+                  }
+                  setSaving(false);
+                }}
+                disabled={saving}
+                className="btn btn-sm"
+                style={{ borderColor: 'var(--gold)', color: 'var(--gold)', gap: '4px', padding: '8px 14px', opacity: saving ? 0.5 : 1 }}>
+                <CheckCircle size={13} /> Salvar
+              </button>
+              {whatsappNumber && (
+                <a href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=Olá ${client.name}, aqui é a equipe Empreendii Soluções ScoreMaster!`}
+                  target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-sm" style={{ textDecoration: 'none', gap: '6px', padding: '8px 14px' }}>
+                  <MessageCircle size={13} /> Testar
+                </a>
+              )}
+            </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+              Este número é usado globalmente em todos os links de WhatsApp do app (login, serviços, mentoria). Formato: 5511999999999
+            </div>
           </div>
         </div>
       </main>
