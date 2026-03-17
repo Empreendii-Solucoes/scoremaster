@@ -20,13 +20,15 @@ export default function LoginPage() {
 
   // Register form
   const [regData, setRegData] = useState({
-    username: '', password: '', name: '', phone: '',
+    username: '', password: '', name: '', email: '', phone: '',
     profile_choice: 'PF', cpf: '', cnpj: '',
   });
 
   // Forgot
   const [forgotUser, setForgotUser] = useState('');
-  const [forgotStep, setForgotStep] = useState<'user' | 'code' | 'done'>('user');
+  const [forgotStep, setForgotStep] = useState<'form' | 'sent'>('form');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMsg, setForgotMsg] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +55,7 @@ export default function LoginPage() {
     setError('');
     const result = await register({
       ...regData,
+      email: regData.email,
       cpf: regData.profile_choice !== 'PJ' ? regData.cpf : undefined,
       cnpj: regData.profile_choice !== 'PF' ? regData.cnpj : undefined,
     });
@@ -182,6 +185,11 @@ export default function LoginPage() {
                 <input className="input" placeholder="João Silva" value={regData.name}
                   onChange={e => setRegData(p => ({ ...p, name: e.target.value }))} required />
               </div>
+              <div className="input-group">
+                <label className="input-label">Email</label>
+                <input className="input" type="email" placeholder="joao@email.com" value={regData.email}
+                  onChange={e => setRegData(p => ({ ...p, email: e.target.value }))} required />
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="input-group">
                   <label className="input-label">Usuário</label>
@@ -249,26 +257,60 @@ export default function LoginPage() {
           {view === 'forgot' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <h3 style={{ color: 'var(--text-main)', fontWeight: 600 }}>Recuperar Senha</h3>
-              <p style={{ color: 'var(--text-sec)', fontSize: '0.875rem', lineHeight: 1.6 }}>
-                Para redefinir sua senha, entre em contato com nosso suporte via WhatsApp informando seu nome de usuário.
-              </p>
-              <div className="input-group">
-                <label className="input-label">Seu Usuário</label>
-                <input className="input" placeholder="Seu usuário" value={forgotUser}
-                  onChange={e => setForgotUser(e.target.value)} />
-              </div>
-              <a
-                href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5500000000000'}?text=${encodeURIComponent(`Olá! Preciso recuperar minha senha do ScoreMaster. Meu usuário é: ${forgotUser}`)}`}
-                target="_blank" rel="noopener noreferrer"
-                className="btn btn-primary btn-full btn-lg"
-                style={{ textDecoration: 'none', gap: '8px' }}>
-                💬 Contatar Suporte via WhatsApp
-              </a>
-              <div className="alert alert-info" style={{ fontSize: '0.8rem' }}>
-                Nossa equipe redefinirá sua senha e entrará em contato com as novas credenciais.
-              </div>
-              <button onClick={() => { setView('login'); setForgotStep('user'); setError(''); }}
-                className="btn btn-ghost btn-full">← Voltar ao Login</button>
+              {forgotStep === 'form' && (
+                <>
+                  <p style={{ color: 'var(--text-sec)', fontSize: '0.875rem', lineHeight: 1.6 }}>
+                    Informe seu nome de usuário e enviaremos uma nova senha provisória para o email cadastrado.
+                  </p>
+                  <div className="input-group">
+                    <label className="input-label">Seu Usuário</label>
+                    <input className="input" placeholder="Seu usuário" value={forgotUser}
+                      onChange={e => setForgotUser(e.target.value)} />
+                  </div>
+                  {forgotMsg && (
+                    <div className="alert alert-danger" style={{ fontSize: '0.8rem' }}>
+                      {forgotMsg}
+                    </div>
+                  )}
+                  <button
+                    onClick={async () => {
+                      if (!forgotUser.trim()) { setForgotMsg('Informe seu usuário.'); return; }
+                      setForgotLoading(true);
+                      setForgotMsg('');
+                      try {
+                        const res = await fetch('/api/auth/forgot-password', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ username: forgotUser.trim() }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) { setForgotMsg(data.error || 'Erro ao processar. Tente novamente.'); }
+                        else { setForgotStep('sent'); }
+                      } catch { setForgotMsg('Erro de conexão. Tente novamente.'); }
+                      setForgotLoading(false);
+                    }}
+                    disabled={forgotLoading}
+                    className="btn btn-primary btn-full btn-lg"
+                    style={{ gap: '8px' }}>
+                    {forgotLoading ? <><Loader2 size={18} className="animate-spin" /> Enviando...</> : '📧 Enviar Nova Senha por Email'}
+                  </button>
+                </>
+              )}
+              {forgotStep === 'sent' && (
+                <>
+                  <div className="alert alert-success" style={{ fontSize: '0.85rem' }}>
+                    ✅ Se o usuário existir e tiver um email cadastrado, uma nova senha provisória foi enviada. Verifique sua caixa de entrada e spam.
+                  </div>
+                  <button onClick={() => { setView('login'); setForgotStep('form'); setForgotUser(''); setForgotMsg(''); setError(''); }}
+                    className="btn btn-primary btn-full btn-lg">
+                    Voltar ao Login
+                  </button>
+                </>
+              )}
+              {forgotStep === 'form' && (
+                <button onClick={() => { setView('login'); setForgotStep('form'); setForgotUser(''); setForgotMsg(''); setError(''); }}
+                  className="btn btn-ghost btn-full">← Voltar ao Login</button>
+              )}
             </div>
           )}
         </div>

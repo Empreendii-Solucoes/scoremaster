@@ -41,6 +41,8 @@ export default function AdminClientView() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [resetPassword, setResetPassword] = useState<string | null>(null);
+  const [resettingPw, setResettingPw] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [clientRes, contentRes, badgesRes] = await Promise.all([
@@ -651,6 +653,61 @@ export default function AdminClientView() {
               ))}
             </div>
           )}
+
+          {/* Gerenciamento de Senha */}
+          <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '10px' }}>Senha do Cliente</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                onClick={async () => {
+                  setResettingPw(true);
+                  setResetPassword(null);
+                  try {
+                    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+                    let tempPw = '';
+                    for (let i = 0; i < 8; i++) tempPw += chars.charAt(Math.floor(Math.random() * chars.length));
+                    const res = await fetch('/api/auth/reset-password', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ username: client.username, newPassword: tempPw }),
+                    });
+                    if (res.ok) {
+                      setResetPassword(tempPw);
+                    }
+                  } catch { /* ignore */ }
+                  setResettingPw(false);
+                }}
+                disabled={resettingPw}
+                className="btn btn-sm"
+                style={{ borderColor: 'var(--warning)', color: 'var(--warning)', gap: '6px', opacity: resettingPw ? 0.5 : 1 }}>
+                <RotateCcw size={13} /> {resettingPw ? 'Gerando...' : 'Gerar Nova Senha'}
+              </button>
+              {resetPassword && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{
+                    padding: '8px 16px', background: 'rgba(238,189,43,0.1)', border: '1px solid rgba(238,189,43,0.3)',
+                    borderRadius: '8px', fontFamily: 'monospace', fontSize: '1rem', fontWeight: 700, color: 'var(--gold)', letterSpacing: '2px',
+                  }}>
+                    {resetPassword}
+                  </div>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(resetPassword); }}
+                    className="btn btn-sm"
+                    style={{ borderColor: 'var(--gold)', color: 'var(--gold)', padding: '6px 10px', fontSize: '0.7rem' }}>
+                    Copiar
+                  </button>
+                </div>
+              )}
+            </div>
+            {resetPassword && (
+              <div style={{ fontSize: '0.7rem', color: 'var(--success)', marginTop: '6px' }}>
+                Senha redefinida com sucesso. Informe ao cliente: <strong>{resetPassword}</strong>
+              </div>
+            )}
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+              A senha é criptografada (bcrypt) e não pode ser visualizada. Use &quot;Gerar Nova Senha&quot; para criar uma senha provisória que será exibida aqui.
+            </div>
+          </div>
         </div>
 
         {/* Contato rápido */}

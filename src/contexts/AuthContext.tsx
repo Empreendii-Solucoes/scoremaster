@@ -21,6 +21,7 @@ interface RegisterData {
   username: string;
   password: string;
   name: string;
+  email: string;
   phone: string;
   profile_choice: string;
   cpf?: string;

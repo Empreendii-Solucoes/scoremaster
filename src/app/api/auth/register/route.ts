@@ -18,10 +18,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { username, password, name, phone, profile_choice, cpf, cnpj } = await request.json();
+    const { username, password, name, email, phone, profile_choice, cpf, cnpj } = await request.json();
 
-    if (!username || !password || !name) {
-      return NextResponse.json({ error: 'Preencha todos os campos obrigatórios.' }, { status: 400 });
+    if (!username || !password || !name || !email) {
+      return NextResponse.json({ error: 'Preencha todos os campos obrigatórios (nome, usuário, email e senha).' }, { status: 400 });
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: 'Email inválido.' }, { status: 400 });
     }
 
     // Validações
@@ -73,7 +77,7 @@ export async function POST(request: NextRequest) {
       username,
       password: hashedPassword,
       name,
-      email: '',
+      email: email || '',
       phone: phone || '',
       onboarding_completed: false,
       credit_health_completed: false,
