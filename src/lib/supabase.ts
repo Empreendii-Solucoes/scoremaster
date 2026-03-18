@@ -16,10 +16,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 if (!serviceRoleKey && typeof window === 'undefined') {
-  console.warn(
-    '⚠️  SUPABASE_SERVICE_ROLE_KEY não configurada! Usando anon key como fallback.',
-    'Se RLS estiver habilitado, queries server-side vão falhar.',
-    'Configure em .env.local ou nas env vars do Vercel.'
+  console.error(
+    '[SUPABASE] CRITICAL: SUPABASE_SERVICE_ROLE_KEY não configurada!',
+    'Usando anon key como fallback — operações server-side podem falhar se RLS estiver ativo.',
+    'Configure em .env.local ou nas env vars do Vercel IMEDIATAMENTE.'
   );
 }
 
@@ -31,3 +31,6 @@ export const supabaseAdmin = serviceRoleKey
       },
     })
   : supabase; // fallback para anon se não tiver service role key
+
+/** Indica se o client admin está usando a service role key real */
+export const hasServiceRoleKey = !!serviceRoleKey;

@@ -125,6 +125,7 @@ export interface User {
   user_tasks?: UserTask[];
   _impersonated_by?: string;
   password_reset_required?: boolean;
+  _updated_at?: string;
 }
 
 export interface Task {

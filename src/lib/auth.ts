@@ -3,7 +3,14 @@ import { SignJWT, jwtVerify } from 'jose';
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
-  console.warn('⚠️  WARNING: JWT_SECRET not set! Using fallback. Set JWT_SECRET in Vercel env vars for production security.');
+  throw new Error(
+    '[AUTH] FATAL: JWT_SECRET não está configurado em produção! '
+    + 'Configure nas env vars do Vercel. App NÃO pode iniciar sem esta variável.'
+  );
+}
+
+if (!JWT_SECRET) {
+  console.warn('[AUTH] JWT_SECRET não configurado — usando chave de desenvolvimento.');
 }
 
 const secret = new TextEncoder().encode(

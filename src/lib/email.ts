@@ -24,7 +24,7 @@ export async function sendPasswordResetEmail(
       return { success: false, error: 'Serviço de email não configurado.' };
     }
 
-    console.log(`[EMAIL] Enviando email de reset para: ${to}, from: ${FROM_EMAIL}`);
+    console.log('[EMAIL] Enviando email de reset de senha...');
     
     const resend = getResend();
     const { data, error } = await resend.emails.send({
@@ -38,7 +38,7 @@ export async function sendPasswordResetEmail(
             <h2 style="color: #EEBD2B; margin: 12px 0 4px;">ScoreMaster</h2>
             <p style="color: #888; font-size: 13px; margin: 0;">Empreendii Soluções</p>
           </div>
-          <p>Olá, <strong>${name}</strong>!</p>
+          <p>Olá, <strong>${name.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c] || c))}</strong>!</p>
           <p>Recebemos seu pedido de recuperação de senha. Aqui está sua nova senha provisória:</p>
           <div style="background: #1A1A1A; border: 1px solid #333; border-radius: 12px; padding: 16px; text-align: center; margin: 20px 0;">
             <span style="font-size: 24px; font-weight: 800; letter-spacing: 3px; color: #EEBD2B;">${tempPassword}</span>
@@ -52,7 +52,7 @@ export async function sendPasswordResetEmail(
 
     if (error) {
       console.error('[EMAIL] Resend error:', JSON.stringify(error));
-      console.error('[EMAIL] Config: FROM_EMAIL=' + FROM_EMAIL + ', API_KEY prefix=' + apiKey.substring(0, 6) + '...');
+      console.error('[EMAIL] Falha no envio. Verifique RESEND_API_KEY e RESEND_FROM_EMAIL.');
       return { success: false, error: error.message };
     }
 

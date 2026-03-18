@@ -347,7 +347,8 @@ export default function AdminPage() {
       userIds: whatsappServiceForm.userIds.split(',').map(s => s.trim()).filter(Boolean),
       link: whatsappServiceForm.link,
     };
-    const updated = { ...servicesData, whatsapp_services: [...(servicesData.whatsapp_services || []), newService] };
+    if (!servicesData) return;
+    const updated: import('@/lib/types').ServicesData = { ...servicesData, whatsapp_services: [...(servicesData.whatsapp_services || []), newService] };
     await saveServices(updated);
     setWhatsappServiceForm({ title: '', description: '', price: 0, visibility: 'all', userIds: '', link: '' });
     setShowNewWpService(false);
@@ -355,7 +356,8 @@ export default function AdminPage() {
 
   const deleteWhatsappService = async (id: string) => {
     if (!confirm('Excluir este serviço?')) return;
-    const updated = { ...servicesData, whatsapp_services: servicesData.whatsapp_services.filter((s: import('@/lib/types').WhatsAppService) => s.id !== id) };
+    if (!servicesData) return;
+    const updated: import('@/lib/types').ServicesData = { ...servicesData, whatsapp_services: (servicesData.whatsapp_services || []).filter((s: import('@/lib/types').WhatsAppService) => s.id !== id) };
     await saveServices(updated);
   };
 

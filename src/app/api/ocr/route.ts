@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 
-const OCR_API_KEY = process.env.OCR_API_KEY || 'helloworld';
+const OCR_API_KEY = process.env.OCR_API_KEY;
+
+if (!OCR_API_KEY && typeof window === 'undefined') {
+  console.warn('[OCR] OCR_API_KEY não configurada. Funcionalidade OCR ficará indisponível.');
+}
 
 export async function POST(request: NextRequest) {
   const token = request.cookies.get('sm_token')?.value;
   const payload = token ? await verifyToken(token) : null;
   if (!payload) {
     return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+  }
+
+  if (!OCR_API_KEY) {
+    return NextResponse.json({ error: 'Serviço OCR não configurado.' }, { status: 503 });
   }
 
   try {

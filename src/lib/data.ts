@@ -41,7 +41,7 @@ export async function findUser(username: string): Promise<User | undefined> {
  * Atualiza um usuário de forma atômica (read-merge-write apenas do registro afetado).
  * Usa uma abordagem de merge profundo para evitar race conditions básicas.
  */
-export async function updateUser(username: string, updates: Partial<User>): Promise<User | null> {
+export async function updateUser(username: string, updates: Partial<User>, retries = 2): Promise<User | null> {
   // Busca somente o usuário necessário
   const { data: row, error: fetchError } = await supabase
     .from('users')
@@ -57,15 +57,36 @@ export async function updateUser(username: string, updates: Partial<User>): Prom
     updates as unknown as Record<string, unknown>
   ) as unknown as User;
 
-  // Salva somente este usuário
-  const { error: saveError } = await supabase
+  // Usa updated_at como versão para detectar conflitos de concorrência
+  const previousUpdatedAt = currentUser._updated_at || null;
+  updatedUser._updated_at = new Date().toISOString();
+
+  // Update condicional: só aplica se ninguém alterou desde a leitura
+  let query = supabase
     .from('users')
     .update({ data: updatedUser })
     .eq('username', username);
 
+  // Se tinha _updated_at, verifica que não mudou (optimistic lock)
+  // Nota: usa containedBy no JSON para checar o campo aninhado
+  if (previousUpdatedAt) {
+    query = query.filter('data->>_updated_at', 'eq', previousUpdatedAt);
+  }
+
+  const { error: saveError, count } = await query.select('username').then(res => ({
+    error: res.error,
+    count: res.data?.length ?? 0
+  }));
+
   if (saveError) {
     console.error('[DATA] Error updating user:', saveError);
     return null;
+  }
+
+  // Se count === 0 e não houve erro, houve conflito de concorrência
+  if (count === 0 && retries > 0) {
+    console.warn(`[DATA] Conflito de concorrência em updateUser(${username}), retentando...`);
+    return updateUser(username, updates, retries - 1);
   }
 
   return updatedUser;

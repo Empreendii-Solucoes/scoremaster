@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadUsers, updateUser } from '@/lib/data';
+import { findUser, loadUsers, updateUser } from '@/lib/data';
 import { signToken } from '@/lib/auth';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import bcrypt from 'bcryptjs';
@@ -30,11 +30,16 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const allUsers = await loadUsers();
-      user = allUsers.find((u: any) => 
-        u.username === username || 
-        (u.email && u.email.toLowerCase() === username.toLowerCase())
-      );
+      // Tenta busca direta por username primeiro (mais eficiente)
+      user = await findUser(username);
+
+      // Se não encontrou por username, pode ser login por email
+      if (!user && username.includes('@')) {
+        const allUsers = await loadUsers();
+        user = allUsers.find((u) =>
+          u.email && u.email.toLowerCase() === username.toLowerCase()
+        );
+      }
     } catch (dbError) {
       console.error('[AUTH] Erro de banco ao buscar usuário:', dbError);
       return NextResponse.json(
