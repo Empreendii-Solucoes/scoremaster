@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findUser } from '@/lib/data';
+import { findUser, loadUsers } from '@/lib/data';
 import { signToken } from '@/lib/auth';
 import { User } from '@/lib/types';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import bcrypt from 'bcryptjs';
 
@@ -45,6 +45,15 @@ export async function POST(request: NextRequest) {
     const existing = await findUser(username);
     if (existing) {
       return NextResponse.json({ error: 'Nome de usuário já está em uso.' }, { status: 409 });
+    }
+
+    // Verificar se email já está em uso
+    const allUsers = await loadUsers();
+    const emailExists = allUsers.some((u: User) => 
+      u.email && u.email.toLowerCase() === email.toLowerCase()
+    );
+    if (emailExists) {
+      return NextResponse.json({ error: 'Este email já está em uso.' }, { status: 409 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -100,8 +109,8 @@ export async function POST(request: NextRequest) {
       last_activity: null,
     };
 
-    // Insert atômico direto no Supabase (não usa saveUsers que reescreve todos)
-    const { error } = await supabase
+    // Insert atômico direto no Supabase (usa supabaseAdmin para bypass de RLS)
+    const { error } = await supabaseAdmin
       .from('users')
       .upsert({ username, data: newUser }, { onConflict: 'username' });
 

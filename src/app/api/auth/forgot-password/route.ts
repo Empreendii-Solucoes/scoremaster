@@ -33,13 +33,9 @@ export async function POST(request: NextRequest) {
   }
 
   const tempPassword = generateTempPassword();
-  const hashedPassword = await bcrypt.hash(tempPassword, 12);
 
-  await updateUser(user.username, { 
-    password: hashedPassword,
-    password_reset_required: true 
-  });
-
+  // Primeiro: enviar o email ANTES de alterar a senha no banco
+  // Se o email falhar, o usuário mantém a senha atual e não perde acesso
   if (user.email) {
     const emailResult = await sendPasswordResetEmail(user.email, user.name, tempPassword);
     if (!emailResult.success) {
@@ -49,6 +45,13 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
   }
+
+  // Somente atualizar a senha se o email foi enviado com sucesso
+  const hashedPassword = await bcrypt.hash(tempPassword, 12);
+  await updateUser(user.username, { 
+    password: hashedPassword,
+    password_reset_required: true 
+  });
 
   return NextResponse.json({
     success: true,
